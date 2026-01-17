@@ -624,21 +624,24 @@ class SMCB_PDF_Generator {
      * @param bool $signed Whether to include actual signatures.
      */
     private function add_signature_section( $signed = false ) {
+        // Check if we have enough space for signature section (need ~90mm)
+        $this->check_page_break( 90 );
+
         $this->pdf->SetFont( 'helvetica', 'B', 12 );
         $this->pdf->SetFillColor( $this->colors['light'][0], $this->colors['light'][1], $this->colors['light'][2] );
         $this->pdf->Cell( 0, 8, 'SIGNATURES', 0, 1, 'L', true );
-        $this->pdf->Ln( 5 );
+        $this->pdf->Ln( 3 );
 
         $this->pdf->SetFont( 'helvetica', '', 10 );
         $this->pdf->MultiCell( 0, 5, 'By signing below, both parties agree to the terms and conditions set forth in this Performance Agreement.', 0, 'L' );
-        $this->pdf->Ln( 10 );
+        $this->pdf->Ln( 5 );
 
         // Two-column layout for signatures in boxes
         $page_width = $this->pdf->getPageWidth();
         $margins = $this->pdf->getMargins();
         $content_width = $page_width - $margins['left'] - $margins['right'];
         $box_width = ( $content_width - 10 ) / 2; // 10mm gap between boxes
-        $box_height = 70;
+        $box_height = 65;
 
         $y_start = $this->pdf->GetY();
         $left_x = $margins['left'];
@@ -646,14 +649,48 @@ class SMCB_PDF_Generator {
 
         $this->pdf->SetDrawColor( $this->colors['border'][0], $this->colors['border'][1], $this->colors['border'][2] );
 
-        // ===== CLIENT SIGNATURE BOX (LEFT) =====
+        // ===== PERFORMER SIGNATURE BOX (LEFT) =====
         $this->pdf->Rect( $left_x, $y_start, $box_width, $box_height, 'D' );
 
-        // Client header
+        // Performer header
         $this->pdf->SetXY( $left_x + 3, $y_start + 3 );
         $this->pdf->SetFont( 'helvetica', 'B', 11 );
-        $this->pdf->Cell( $box_width - 6, 6, 'CLIENT', 0, 1 );
+        $this->pdf->Cell( $box_width - 6, 6, 'PERFORMER', 0, 1 );
         $this->pdf->SetX( $left_x + 3 );
+        $this->pdf->SetFont( 'helvetica', '', 10 );
+        $this->pdf->Cell( $box_width - 6, 5, SMCB_COMPANY_NAME, 0, 1 );
+
+        // Performer signature image (always shown)
+        $performer_sig_path = SMCB_PLUGIN_DIR . 'assets/images/performer-signature.png';
+        if ( file_exists( $performer_sig_path ) ) {
+            $this->pdf->Image( $performer_sig_path, $left_x + 5, $y_start + 16, 50, 18 );
+        }
+
+        // Signature line
+        $sig_line_y = $y_start + 38;
+        $this->pdf->Line( $left_x + 5, $sig_line_y, $left_x + $box_width - 5, $sig_line_y );
+        $this->pdf->SetXY( $left_x + 3, $sig_line_y + 1 );
+        $this->pdf->SetFont( 'helvetica', '', 8 );
+        $this->pdf->Cell( $box_width - 6, 4, 'Signature', 0, 1 );
+
+        // Performer signed by info (always filled)
+        $this->pdf->SetXY( $left_x + 3, $sig_line_y + 6 );
+        $this->pdf->SetFont( 'helvetica', '', 9 );
+        $this->pdf->Cell( $box_width - 6, 5, 'Signed by: Jay Goodman obo Skinny Moo', 0, 1 );
+        $this->pdf->SetX( $left_x + 3 );
+
+        // Use sent_at date for performer signature date, or current date if not sent
+        $performer_date = ! empty( $this->contract->sent_at ) ? smcb_format_date( $this->contract->sent_at ) : date( 'F j, Y' );
+        $this->pdf->Cell( $box_width - 6, 5, 'Date: ' . $performer_date, 0, 1 );
+
+        // ===== CLIENT SIGNATURE BOX (RIGHT) =====
+        $this->pdf->Rect( $right_x, $y_start, $box_width, $box_height, 'D' );
+
+        // Client header
+        $this->pdf->SetXY( $right_x + 3, $y_start + 3 );
+        $this->pdf->SetFont( 'helvetica', 'B', 11 );
+        $this->pdf->Cell( $box_width - 6, 6, 'CLIENT', 0, 1 );
+        $this->pdf->SetX( $right_x + 3 );
         $this->pdf->SetFont( 'helvetica', '', 10 );
         $this->pdf->Cell( $box_width - 6, 5, $this->contract->client_company_name, 0, 1 );
 
@@ -665,51 +702,7 @@ class SMCB_PDF_Generator {
                 $sig_data = substr( $sig_data, strpos( $sig_data, ',' ) + 1 );
             }
             $sig_image = base64_decode( $sig_data );
-            $this->pdf->Image( '@' . $sig_image, $left_x + 5, $y_start + 18, 50, 18 );
-        }
-
-        // Signature line
-        $sig_line_y = $y_start + 40;
-        $this->pdf->Line( $left_x + 5, $sig_line_y, $left_x + $box_width - 5, $sig_line_y );
-        $this->pdf->SetXY( $left_x + 3, $sig_line_y + 1 );
-        $this->pdf->SetFont( 'helvetica', '', 8 );
-        $this->pdf->Cell( $box_width - 6, 4, 'Signature', 0, 1 );
-
-        if ( $signed && ! empty( $this->contract->client_signed_name ) ) {
-            $this->pdf->SetXY( $left_x + 3, $sig_line_y + 6 );
-            $this->pdf->SetFont( 'helvetica', '', 9 );
-            $this->pdf->Cell( $box_width - 6, 5, 'Signed by: ' . $this->contract->client_signed_name, 0, 1 );
-            $this->pdf->SetX( $left_x + 3 );
-            $this->pdf->Cell( $box_width - 6, 5, 'Date: ' . smcb_format_date( $this->contract->client_signed_at ), 0, 1 );
-        } else {
-            // Print name line
-            $name_line_y = $sig_line_y + 12;
-            $this->pdf->Line( $left_x + 5, $name_line_y, $left_x + $box_width - 5, $name_line_y );
-            $this->pdf->SetXY( $left_x + 3, $name_line_y + 1 );
-            $this->pdf->Cell( $box_width - 6, 4, 'Print Name', 0, 1 );
-
-            // Date line
-            $date_line_y = $name_line_y + 12;
-            $this->pdf->Line( $left_x + 5, $date_line_y, $left_x + $box_width - 5, $date_line_y );
-            $this->pdf->SetXY( $left_x + 3, $date_line_y + 1 );
-            $this->pdf->Cell( $box_width - 6, 4, 'Date', 0, 1 );
-        }
-
-        // ===== PERFORMER SIGNATURE BOX (RIGHT) =====
-        $this->pdf->Rect( $right_x, $y_start, $box_width, $box_height, 'D' );
-
-        // Performer header
-        $this->pdf->SetXY( $right_x + 3, $y_start + 3 );
-        $this->pdf->SetFont( 'helvetica', 'B', 11 );
-        $this->pdf->Cell( $box_width - 6, 6, 'PERFORMER', 0, 1 );
-        $this->pdf->SetX( $right_x + 3 );
-        $this->pdf->SetFont( 'helvetica', '', 10 );
-        $this->pdf->Cell( $box_width - 6, 5, SMCB_COMPANY_NAME, 0, 1 );
-
-        // Performer signature image (always shown)
-        $performer_sig_path = SMCB_PLUGIN_DIR . 'assets/images/performer-signature.png';
-        if ( file_exists( $performer_sig_path ) ) {
-            $this->pdf->Image( $performer_sig_path, $right_x + 5, $y_start + 18, 50, 18 );
+            $this->pdf->Image( '@' . $sig_image, $right_x + 5, $y_start + 16, 50, 18 );
         }
 
         // Signature line
@@ -718,15 +711,25 @@ class SMCB_PDF_Generator {
         $this->pdf->SetFont( 'helvetica', '', 8 );
         $this->pdf->Cell( $box_width - 6, 4, 'Signature', 0, 1 );
 
-        // Performer signed by info (always filled)
-        $this->pdf->SetXY( $right_x + 3, $sig_line_y + 6 );
-        $this->pdf->SetFont( 'helvetica', '', 9 );
-        $this->pdf->Cell( $box_width - 6, 5, 'Signed by: Jay Goodman obo Skinny Moo', 0, 1 );
-        $this->pdf->SetX( $right_x + 3 );
+        if ( $signed && ! empty( $this->contract->client_signed_name ) ) {
+            $this->pdf->SetXY( $right_x + 3, $sig_line_y + 6 );
+            $this->pdf->SetFont( 'helvetica', '', 9 );
+            $this->pdf->Cell( $box_width - 6, 5, 'Signed by: ' . $this->contract->client_signed_name, 0, 1 );
+            $this->pdf->SetX( $right_x + 3 );
+            $this->pdf->Cell( $box_width - 6, 5, 'Date: ' . smcb_format_date( $this->contract->client_signed_at ), 0, 1 );
+        } else {
+            // Print name line
+            $name_line_y = $sig_line_y + 10;
+            $this->pdf->Line( $right_x + 5, $name_line_y, $right_x + $box_width - 5, $name_line_y );
+            $this->pdf->SetXY( $right_x + 3, $name_line_y + 1 );
+            $this->pdf->Cell( $box_width - 6, 4, 'Print Name', 0, 1 );
 
-        // Use sent_at date for performer signature date, or current date if not sent
-        $performer_date = ! empty( $this->contract->sent_at ) ? smcb_format_date( $this->contract->sent_at ) : date( 'F j, Y' );
-        $this->pdf->Cell( $box_width - 6, 5, 'Date: ' . $performer_date, 0, 1 );
+            // Date line
+            $date_line_y = $name_line_y + 10;
+            $this->pdf->Line( $right_x + 5, $date_line_y, $right_x + $box_width - 5, $date_line_y );
+            $this->pdf->SetXY( $right_x + 3, $date_line_y + 1 );
+            $this->pdf->Cell( $box_width - 6, 4, 'Date', 0, 1 );
+        }
 
         // Move cursor below both boxes
         $this->pdf->SetY( $y_start + $box_height + 5 );
