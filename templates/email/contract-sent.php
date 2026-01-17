@@ -17,14 +17,15 @@ $content = '
 
 <p>Thank you for booking Skinny Moo for your upcoming event! We\'re excited to be part of ' . esc_html( $this->contract->event_name ) . '.</p>
 
-<p>Please review the Performance Agreement and Invoice for your event:</p>
+<p>Please click the "View & Sign Contract" button below to review the Performance Agreement and Invoice for your event:</p>
 
 <div class="details-box">
     <strong>Event Details</strong>
     <p><strong>Event:</strong> ' . esc_html( $this->contract->event_name ) . '<br>
     <strong>Date:</strong> ' . esc_html( smcb_format_date( $this->contract->performance_date ) ) . '<br>
-    <strong>Time:</strong> ' . esc_html( smcb_format_time( $this->contract->first_set_start_time ) ) . '<br>
-    <strong>Total:</strong> <span class="highlight">' . esc_html( smcb_format_currency( $this->contract->calculated->total_compensation ) ) . '</span></p>
+    <strong>Load-in Time:</strong> ' . esc_html( smcb_format_time( $this->contract->load_in_time ) ) . '<br>
+    <strong>Performance Time:</strong> ' . esc_html( smcb_format_time( $this->contract->first_set_start_time ) ) . '<br>
+    <strong>Agreed Performance Rate:</strong> <span class="highlight">' . esc_html( smcb_format_currency( $this->contract->calculated->total_compensation ) ) . '</span></p>
 </div>
 
 <p style="text-align: center;">

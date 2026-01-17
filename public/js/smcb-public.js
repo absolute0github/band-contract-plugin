@@ -13,6 +13,27 @@
     function init() {
         initSignaturePad();
         initSignatureForm();
+        checkScrollToTop();
+    }
+
+    /**
+     * Check if we should scroll to top (after signature)
+     */
+    function checkScrollToTop() {
+        var params = new URLSearchParams(window.location.search);
+        if (params.get('signed') === '1') {
+            // Scroll to top to show success message
+            $('html, body').animate({
+                scrollTop: 0
+            }, 500);
+            // Clean up URL by removing the signed parameter
+            params.delete('signed');
+            var newUrl = window.location.pathname;
+            if (params.toString()) {
+                newUrl += '?' + params.toString();
+            }
+            window.history.replaceState({}, '', newUrl);
+        }
     }
 
     /**
@@ -120,10 +141,14 @@
                         $form.slideUp(function() {
                             $('.smcb-signature-section h2').text('Contract Signed!');
                         });
-                        // Reload after delay
+                        // Reload after delay and scroll to top to show success message
                         setTimeout(function() {
-                            location.reload();
-                        }, 3000);
+                            // Add signed parameter to trigger scroll on reload
+                            var url = window.location.href.split('?')[0];
+                            var params = new URLSearchParams(window.location.search);
+                            params.set('signed', '1');
+                            window.location.href = url + '?' + params.toString();
+                        }, 2000);
                     } else {
                         showError(response.message || 'An error occurred. Please try again.');
                     }

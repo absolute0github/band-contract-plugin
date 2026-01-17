@@ -156,52 +156,59 @@ class SMCB_PDF_Generator {
         $this->add_logo();
 
         // Add date
-        $this->pdf->Ln( 10 );
-        $this->pdf->SetFont( 'helvetica', '', 11 );
-        $this->pdf->Cell( 0, 6, date( 'F j, Y' ), 0, 1 );
         $this->pdf->Ln( 5 );
+        $this->pdf->SetFont( 'helvetica', '', 11 );
+        $this->pdf->Cell( 0, 5, date( 'F j, Y' ), 0, 1 );
+        $this->pdf->Ln( 3 );
 
         // Recipient info
         $this->pdf->SetFont( 'helvetica', 'B', 11 );
-        $this->pdf->Cell( 0, 6, $this->contract->contact_person_name, 0, 1 );
+        $this->pdf->Cell( 0, 5, $this->contract->contact_person_name, 0, 1 );
         $this->pdf->SetFont( 'helvetica', '', 11 );
-        $this->pdf->Cell( 0, 6, $this->contract->client_company_name, 0, 1 );
-        $this->pdf->Cell( 0, 6, $this->contract->street_address, 0, 1 );
-        $this->pdf->Cell( 0, 6, $this->contract->city . ', ' . $this->contract->state . ' ' . $this->contract->zip_code, 0, 1 );
-        $this->pdf->Ln( 10 );
+        $this->pdf->Cell( 0, 5, $this->contract->client_company_name, 0, 1 );
+        $this->pdf->Cell( 0, 5, $this->contract->street_address, 0, 1 );
+        $this->pdf->Cell( 0, 5, $this->contract->city . ', ' . $this->contract->state . ' ' . $this->contract->zip_code, 0, 1 );
+        $this->pdf->Ln( 5 );
 
         // Greeting
         $this->pdf->SetFont( 'helvetica', '', 11 );
-        $this->pdf->Cell( 0, 6, 'Dear ' . $this->contract->contact_person_name . ',', 0, 1 );
-        $this->pdf->Ln( 5 );
+        $this->pdf->Cell( 0, 5, 'Dear ' . $this->contract->contact_person_name . ',', 0, 1 );
+        $this->pdf->Ln( 3 );
 
         // Custom message or default
         $message = ! empty( $this->contract->cover_letter_message )
             ? $this->contract->cover_letter_message
             : $this->get_default_cover_letter_message();
 
-        $this->pdf->MultiCell( 0, 6, $message, 0, 'L' );
-        $this->pdf->Ln( 10 );
+        $this->pdf->MultiCell( 0, 5, $message, 0, 'L' );
+        $this->pdf->Ln( 5 );
 
         // Event details summary
         $this->add_event_summary_box();
 
         // Closing
-        $this->pdf->Ln( 10 );
-        $this->pdf->MultiCell( 0, 6, 'Please review the attached Performance Agreement and Invoice. If everything looks correct, please sign the agreement and return it to us.', 0, 'L' );
         $this->pdf->Ln( 5 );
-        $this->pdf->MultiCell( 0, 6, 'We look forward to performing for you and making your event a success!', 0, 'L' );
-        $this->pdf->Ln( 10 );
+        $this->pdf->MultiCell( 0, 5, 'Please review the attached Performance Agreement and Invoice. If everything looks correct, please sign the agreement and return it to us.', 0, 'L' );
+        $this->pdf->Ln( 3 );
+        $this->pdf->MultiCell( 0, 5, 'We look forward to performing for you and making your event a success!', 0, 'L' );
+        $this->pdf->Ln( 5 );
 
         // Signature
-        $this->pdf->Cell( 0, 6, 'Warm regards,', 0, 1 );
-        $this->pdf->Ln( 15 );
+        $this->pdf->Cell( 0, 5, 'Warm regards,', 0, 1 );
+        $this->pdf->Ln( 10 );
         $this->pdf->SetFont( 'helvetica', 'B', 11 );
-        $this->pdf->Cell( 0, 6, 'Skinny Moo', 0, 1 );
+        $this->pdf->Cell( 0, 5, 'Skinny Moo', 0, 1 );
         $this->pdf->SetFont( 'helvetica', '', 11 );
-        $this->pdf->Cell( 0, 6, SMCB_COMPANY_NAME, 0, 1 );
-        $this->pdf->Cell( 0, 6, SMCB_COMPANY_PHONE, 0, 1 );
-        $this->pdf->Cell( 0, 6, SMCB_COMPANY_EMAIL, 0, 1 );
+        $this->pdf->Cell( 0, 5, SMCB_COMPANY_NAME, 0, 1 );
+        $this->pdf->Cell( 0, 5, SMCB_COMPANY_PHONE, 0, 1 );
+        $this->pdf->Cell( 0, 5, SMCB_COMPANY_EMAIL, 0, 1 );
+        $this->pdf->Ln( 8 );
+
+        // LLC/EIN info
+        $this->pdf->SetFont( 'helvetica', '', 9 );
+        $this->pdf->SetTextColor( 100, 100, 100 );
+        $this->pdf->Cell( 0, 5, 'Skinny Moo Media Services is a Limited Liability Company (EIN #: 20-4746552)', 0, 1, 'C' );
+        $this->pdf->SetTextColor( $this->colors['text'][0], $this->colors['text'][1], $this->colors['text'][2] );
 
         return $this->save_pdf( 'cover-letter' );
     }
@@ -325,7 +332,11 @@ class SMCB_PDF_Generator {
         $this->pdf->Cell( 0, 5, 'PAYMENT METHODS', 0, 1 );
         $this->pdf->SetX( 110 );
         $this->pdf->SetFont( 'helvetica', '', 9 );
-        $this->pdf->MultiCell( 0, 4, "Checks payable to: " . SMCB_COMPANY_NAME . "\nVenmo: @skinnymoo  |  PayPal: " . SMCB_COMPANY_EMAIL, 0, 'L' );
+        $this->pdf->MultiCell( 0, 4, "Checks payable to: " . SMCB_COMPANY_NAME, 0, 'L' );
+        $this->pdf->Ln( 3 );
+        $this->pdf->SetX( 110 );
+        $this->pdf->SetFont( 'helvetica', '', 8 );
+        $this->pdf->MultiCell( 0, 4, "We can take credit card payments with a processing fee of 3.5%. Please contact Jay Goodman at (330) 421-1960 to process your credit card payment.", 0, 'L' );
 
         return $this->save_pdf( 'invoice' );
     }
@@ -862,12 +873,34 @@ class SMCB_PDF_Generator {
     }
 
     /**
+     * Get random fun sentence for cover letter.
+     *
+     * @return string Random fun sentence.
+     */
+    private function get_random_cover_letter_sentence() {
+        $sentences = array(
+            "Get ready—we're about to bring enough energy to power a small city (or at least blow a fuse or two).",
+            "Consider your event officially upgraded to legendary status.",
+            "We hope you're ready for some serious foot-stomping, head-banging, and possibly some questionable dance moves from your guests.",
+            "Fair warning: we've been known to turn wallflowers into dance floor warriors.",
+            "Start stretching now—your air guitar arm is going to get a workout.",
+            "We promise to leave it all on the stage (except the equipment—we're taking that back).",
+            "Earplugs optional, good times mandatory.",
+            "We're fired up to turn your event into the kind of night people talk about for years.",
+            "Hope your neighbors like rock music, because they're about to find out.",
+            "We're ready to bring the thunder—you just bring the crowd and we'll handle the rest.",
+        );
+        return $sentences[ array_rand( $sentences ) ];
+    }
+
+    /**
      * Get default cover letter message.
      *
      * @return string Default message.
      */
     private function get_default_cover_letter_message() {
-        return "Thank you for considering Skinny Moo for your upcoming event! We are excited about the opportunity to provide entertainment for " . $this->contract->event_name . " on " . smcb_format_date( $this->contract->performance_date ) . ".\n\nEnclosed you will find our Performance Agreement and Invoice for your review.";
+        $fun_sentence = $this->get_random_cover_letter_sentence();
+        return "Thank you for choosing Skinny Moo for your musical entertainment! " . $fun_sentence . "\n\nFor more information and downloadable music, please see our website http://www.skinnymoo.com. You can also find our online press kit (with images, logos, stage plot and more) at http://www.skinnymoo.com/presskit\n\nEnclosed you will find our Performance Agreement and Invoice for your review.";
     }
 
     /**

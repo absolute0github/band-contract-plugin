@@ -237,13 +237,17 @@
     display: flex;
     flex-wrap: wrap;
     gap: 15px;
+    width: 100%;
 }
 
 .smcb-set {
+    flex: 1 1 0;
+    min-width: 0;
     background: #f9f9f9;
-    padding: 12px 20px;
+    padding: 15px 20px;
     border-radius: 6px;
     border-left: 4px solid #c41230;
+    text-align: center;
 }
 
 .smcb-set-number {
@@ -265,6 +269,10 @@
     width: 100%;
     max-width: 450px;
     border-collapse: collapse;
+}
+
+.smcb-compensation-table-full {
+    max-width: 100%;
 }
 
 .smcb-compensation-table td {
@@ -323,6 +331,13 @@
 }
 
 /* Terms Section */
+.smcb-scroll-instruction {
+    font-size: 13px;
+    font-style: italic;
+    color: #666;
+    margin-bottom: 15px;
+}
+
 .smcb-terms-section .smcb-terms {
     max-height: 300px;
     overflow-y: auto;

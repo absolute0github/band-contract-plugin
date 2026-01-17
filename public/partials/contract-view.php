@@ -68,11 +68,11 @@
                     <span class="smcb-value"><?php echo esc_html( smcb_format_date( $contract->performance_date ) ); ?></span>
                 </div>
                 <div class="smcb-event-summary-item">
-                    <span class="smcb-label"><?php esc_html_e( 'Time', 'skinny-moo-contract-builder' ); ?></span>
+                    <span class="smcb-label"><?php esc_html_e( 'Performance Time', 'skinny-moo-contract-builder' ); ?></span>
                     <span class="smcb-value"><?php echo esc_html( smcb_format_time( $contract->first_set_start_time ) ); ?></span>
                 </div>
                 <div class="smcb-event-summary-item">
-                    <span class="smcb-label"><?php esc_html_e( 'Total', 'skinny-moo-contract-builder' ); ?></span>
+                    <span class="smcb-label"><?php esc_html_e( 'Agreed Performance Rate', 'skinny-moo-contract-builder' ); ?></span>
                     <span class="smcb-value smcb-value-highlight"><?php echo esc_html( smcb_format_currency( $contract->calculated->total_compensation ) ); ?></span>
                 </div>
             </div>
@@ -224,10 +224,37 @@
                 <?php endif; ?>
             </section>
 
+            <!-- Terms and Conditions -->
+            <section class="smcb-section smcb-terms-section">
+                <h2><?php esc_html_e( 'Terms and Conditions', 'skinny-moo-contract-builder' ); ?></h2>
+                <p class="smcb-scroll-instruction"><?php esc_html_e( 'Scroll within this window to see all the terms & conditions listed.', 'skinny-moo-contract-builder' ); ?></p>
+                <div class="smcb-terms">
+                    <ol>
+                        <li><strong><?php esc_html_e( 'Deposit:', 'skinny-moo-contract-builder' ); ?></strong> <?php printf( esc_html__( 'A non-refundable deposit of %d%% (%s) is due upon signing of this agreement. The remaining balance is due on the day of the performance.', 'skinny-moo-contract-builder' ), esc_html( $contract->deposit_percentage ), esc_html( smcb_format_currency( $contract->calculated->deposit_amount ) ) ); ?></li>
+                        <li><strong><?php esc_html_e( 'Cancellation:', 'skinny-moo-contract-builder' ); ?></strong> <?php esc_html_e( 'If CLIENT cancels this engagement, the deposit is non-refundable. If cancellation occurs within 30 days of the performance date, CLIENT agrees to pay 50% of the total contract amount. If cancellation occurs within 14 days of the performance date, CLIENT agrees to pay 100% of the total contract amount.', 'skinny-moo-contract-builder' ); ?></li>
+                        <li><strong><?php esc_html_e( 'Cancellation by Performer:', 'skinny-moo-contract-builder' ); ?></strong> <?php esc_html_e( 'If PERFORMER must cancel this engagement due to circumstances beyond their control, PERFORMER will make every reasonable effort to find a suitable replacement. If no replacement can be found, all payments made by CLIENT will be refunded in full.', 'skinny-moo-contract-builder' ); ?></li>
+                        <li><strong><?php esc_html_e( 'Force Majeure:', 'skinny-moo-contract-builder' ); ?></strong> <?php esc_html_e( 'Neither party shall be liable for failure to perform due to circumstances beyond their reasonable control, including but not limited to: acts of God, natural disasters, government actions, pandemic, or venue closure.', 'skinny-moo-contract-builder' ); ?></li>
+                        <li><strong><?php esc_html_e( 'Sound and Lighting:', 'skinny-moo-contract-builder' ); ?></strong> <?php esc_html_e( 'As specified in this agreement, sound and lighting equipment will be provided as noted. Any additional equipment required must be arranged and paid for separately.', 'skinny-moo-contract-builder' ); ?></li>
+                        <li><strong><?php esc_html_e( 'Meals:', 'skinny-moo-contract-builder' ); ?></strong> <?php esc_html_e( 'If the performance extends through normal meal times, CLIENT agrees to provide a meal for the performing members.', 'skinny-moo-contract-builder' ); ?></li>
+                        <li><strong><?php esc_html_e( 'Parking:', 'skinny-moo-contract-builder' ); ?></strong> <?php esc_html_e( 'CLIENT will provide convenient and safe parking for PERFORMER vehicles and equipment at no charge.', 'skinny-moo-contract-builder' ); ?></li>
+                        <li><strong><?php esc_html_e( 'Safety:', 'skinny-moo-contract-builder' ); ?></strong> <?php esc_html_e( 'CLIENT will provide a safe performance environment. PERFORMER reserves the right to stop performance if conditions become unsafe.', 'skinny-moo-contract-builder' ); ?></li>
+                        <li><strong><?php esc_html_e( 'Recording:', 'skinny-moo-contract-builder' ); ?></strong> <?php esc_html_e( 'PERFORMER may record audio and/or video of the performance for promotional purposes. CLIENT may photograph or record the performance for personal, non-commercial use.', 'skinny-moo-contract-builder' ); ?></li>
+                        <li><strong><?php esc_html_e( 'Entire Agreement:', 'skinny-moo-contract-builder' ); ?></strong> <?php esc_html_e( 'This agreement constitutes the entire agreement between the parties and supersedes all prior negotiations, understandings, and agreements between the parties.', 'skinny-moo-contract-builder' ); ?></li>
+                    </ol>
+                </div>
+
+                <?php if ( ! empty( $contract->additional_contract_notes ) ) : ?>
+                    <div class="smcb-additional-notes">
+                        <h3><?php esc_html_e( 'Additional Notes', 'skinny-moo-contract-builder' ); ?></h3>
+                        <p><?php echo esc_html( $contract->additional_contract_notes ); ?></p>
+                    </div>
+                <?php endif; ?>
+            </section>
+
             <!-- Compensation -->
             <section class="smcb-section smcb-section-highlight">
                 <h2><?php esc_html_e( 'Compensation', 'skinny-moo-contract-builder' ); ?></h2>
-                <table class="smcb-compensation-table">
+                <table class="smcb-compensation-table smcb-compensation-table-full">
                     <tbody>
                         <tr>
                             <td><?php esc_html_e( 'Base Compensation', 'skinny-moo-contract-builder' ); ?></td>
@@ -246,7 +273,7 @@
                             </tr>
                         <?php endif; ?>
                         <tr class="smcb-total-row">
-                            <td><strong><?php esc_html_e( 'Total', 'skinny-moo-contract-builder' ); ?></strong></td>
+                            <td><strong><?php esc_html_e( 'Total Performance Fees', 'skinny-moo-contract-builder' ); ?></strong></td>
                             <td class="smcb-amount"><strong><?php echo esc_html( smcb_format_currency( $contract->calculated->total_compensation ) ); ?></strong></td>
                         </tr>
                     </tbody>
@@ -271,32 +298,6 @@
                         <strong><?php esc_html_e( 'Additional:', 'skinny-moo-contract-builder' ); ?></strong>
                         <?php echo esc_html( $contract->additional_compensation ); ?>
                     </p>
-                <?php endif; ?>
-            </section>
-
-            <!-- Terms and Conditions -->
-            <section class="smcb-section smcb-terms-section">
-                <h2><?php esc_html_e( 'Terms and Conditions', 'skinny-moo-contract-builder' ); ?></h2>
-                <div class="smcb-terms">
-                    <ol>
-                        <li><strong><?php esc_html_e( 'Deposit:', 'skinny-moo-contract-builder' ); ?></strong> <?php printf( esc_html__( 'A non-refundable deposit of %d%% (%s) is due upon signing of this agreement. The remaining balance is due on the day of the performance.', 'skinny-moo-contract-builder' ), esc_html( $contract->deposit_percentage ), esc_html( smcb_format_currency( $contract->calculated->deposit_amount ) ) ); ?></li>
-                        <li><strong><?php esc_html_e( 'Cancellation:', 'skinny-moo-contract-builder' ); ?></strong> <?php esc_html_e( 'If CLIENT cancels this engagement, the deposit is non-refundable. If cancellation occurs within 30 days of the performance date, CLIENT agrees to pay 50% of the total contract amount. If cancellation occurs within 14 days of the performance date, CLIENT agrees to pay 100% of the total contract amount.', 'skinny-moo-contract-builder' ); ?></li>
-                        <li><strong><?php esc_html_e( 'Cancellation by Performer:', 'skinny-moo-contract-builder' ); ?></strong> <?php esc_html_e( 'If PERFORMER must cancel this engagement due to circumstances beyond their control, PERFORMER will make every reasonable effort to find a suitable replacement. If no replacement can be found, all payments made by CLIENT will be refunded in full.', 'skinny-moo-contract-builder' ); ?></li>
-                        <li><strong><?php esc_html_e( 'Force Majeure:', 'skinny-moo-contract-builder' ); ?></strong> <?php esc_html_e( 'Neither party shall be liable for failure to perform due to circumstances beyond their reasonable control, including but not limited to: acts of God, natural disasters, government actions, pandemic, or venue closure.', 'skinny-moo-contract-builder' ); ?></li>
-                        <li><strong><?php esc_html_e( 'Sound and Lighting:', 'skinny-moo-contract-builder' ); ?></strong> <?php esc_html_e( 'As specified in this agreement, sound and lighting equipment will be provided as noted. Any additional equipment required must be arranged and paid for separately.', 'skinny-moo-contract-builder' ); ?></li>
-                        <li><strong><?php esc_html_e( 'Meals:', 'skinny-moo-contract-builder' ); ?></strong> <?php esc_html_e( 'If the performance extends through normal meal times, CLIENT agrees to provide a meal for the performing members.', 'skinny-moo-contract-builder' ); ?></li>
-                        <li><strong><?php esc_html_e( 'Parking:', 'skinny-moo-contract-builder' ); ?></strong> <?php esc_html_e( 'CLIENT will provide convenient and safe parking for PERFORMER vehicles and equipment at no charge.', 'skinny-moo-contract-builder' ); ?></li>
-                        <li><strong><?php esc_html_e( 'Safety:', 'skinny-moo-contract-builder' ); ?></strong> <?php esc_html_e( 'CLIENT will provide a safe performance environment. PERFORMER reserves the right to stop performance if conditions become unsafe.', 'skinny-moo-contract-builder' ); ?></li>
-                        <li><strong><?php esc_html_e( 'Recording:', 'skinny-moo-contract-builder' ); ?></strong> <?php esc_html_e( 'PERFORMER may record audio and/or video of the performance for promotional purposes. CLIENT may photograph or record the performance for personal, non-commercial use.', 'skinny-moo-contract-builder' ); ?></li>
-                        <li><strong><?php esc_html_e( 'Entire Agreement:', 'skinny-moo-contract-builder' ); ?></strong> <?php esc_html_e( 'This agreement constitutes the entire agreement between the parties and supersedes all prior negotiations, understandings, and agreements between the parties.', 'skinny-moo-contract-builder' ); ?></li>
-                    </ol>
-                </div>
-
-                <?php if ( ! empty( $contract->additional_contract_notes ) ) : ?>
-                    <div class="smcb-additional-notes">
-                        <h3><?php esc_html_e( 'Additional Notes', 'skinny-moo-contract-builder' ); ?></h3>
-                        <p><?php echo esc_html( $contract->additional_contract_notes ); ?></p>
-                    </div>
                 <?php endif; ?>
             </section>
 

@@ -203,13 +203,16 @@ class SMCB_REST_API {
         // Send confirmation emails
         $email = new SMCB_Email( $contract );
 
-        // Collect PDFs for attachment
+        // Collect PDFs for attachment (cover letter, invoice, signed contract)
         $attachments = array();
-        if ( ! empty( $contract->signed_contract_pdf_path ) && file_exists( $contract->signed_contract_pdf_path ) ) {
-            $attachments[] = $contract->signed_contract_pdf_path;
+        if ( ! empty( $contract->cover_letter_pdf_path ) && file_exists( $contract->cover_letter_pdf_path ) ) {
+            $attachments[] = $contract->cover_letter_pdf_path;
         }
         if ( ! empty( $contract->invoice_pdf_path ) && file_exists( $contract->invoice_pdf_path ) ) {
             $attachments[] = $contract->invoice_pdf_path;
+        }
+        if ( ! empty( $contract->signed_contract_pdf_path ) && file_exists( $contract->signed_contract_pdf_path ) ) {
+            $attachments[] = $contract->signed_contract_pdf_path;
         }
 
         // Send to client
