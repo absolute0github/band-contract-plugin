@@ -261,65 +261,71 @@ class SMCB_PDF_Generator {
         $this->init_pdf();
         $this->pdf->AddPage();
 
-        // Header
-        $this->add_logo();
+        // Header - use compact logo
+        $this->add_logo( false );
 
-        // Invoice title and number
-        $this->pdf->Ln( 10 );
-        $this->pdf->SetFont( 'helvetica', 'B', 24 );
+        // Invoice title and number - side by side layout
+        $this->pdf->SetFont( 'helvetica', 'B', 20 );
         $this->pdf->SetTextColor( $this->colors['primary'][0], $this->colors['primary'][1], $this->colors['primary'][2] );
-        $this->pdf->Cell( 0, 10, 'INVOICE', 0, 1 );
+        $this->pdf->Cell( 90, 8, 'INVOICE', 0, 0 );
         $this->pdf->SetTextColor( $this->colors['text'][0], $this->colors['text'][1], $this->colors['text'][2] );
+        $this->pdf->SetFont( 'helvetica', '', 10 );
+        $this->pdf->Cell( 0, 8, 'Invoice #: ' . $this->contract->invoice_number . '  |  Contract #: ' . $this->contract->contract_number . '  |  Date: ' . smcb_format_date( $this->contract->created_at ), 0, 1, 'R' );
+        $this->pdf->Ln( 5 );
 
-        $this->pdf->SetFont( 'helvetica', '', 11 );
-        $this->pdf->Cell( 0, 6, 'Invoice #: ' . $this->contract->invoice_number, 0, 1 );
-        $this->pdf->Cell( 0, 6, 'Contract #: ' . $this->contract->contract_number, 0, 1 );
-        $this->pdf->Cell( 0, 6, 'Date: ' . smcb_format_date( $this->contract->created_at ), 0, 1 );
-        $this->pdf->Ln( 10 );
+        // Bill To / From - more compact
+        $this->pdf->SetFont( 'helvetica', 'B', 10 );
+        $this->pdf->Cell( 90, 5, 'BILL TO:', 0, 0 );
+        $this->pdf->Cell( 0, 5, 'FROM:', 0, 1 );
 
-        // Bill To
-        $this->pdf->SetFont( 'helvetica', 'B', 12 );
-        $this->pdf->Cell( 90, 6, 'BILL TO:', 0, 0 );
-        $this->pdf->Cell( 0, 6, 'FROM:', 0, 1 );
-
-        $this->pdf->SetFont( 'helvetica', '', 11 );
+        $this->pdf->SetFont( 'helvetica', '', 9 );
 
         // Left column - Client
         $y_start = $this->pdf->GetY();
-        $this->pdf->MultiCell( 90, 6, $this->contract->client_company_name . "\n" . $this->contract->contact_person_name . "\n" . $this->contract->street_address . "\n" . $this->contract->city . ', ' . $this->contract->state . ' ' . $this->contract->zip_code . "\n" . $this->contract->email, 0, 'L' );
+        $this->pdf->MultiCell( 90, 5, $this->contract->client_company_name . "\n" . $this->contract->contact_person_name . "\n" . $this->contract->street_address . "\n" . $this->contract->city . ', ' . $this->contract->state . ' ' . $this->contract->zip_code . "\n" . $this->contract->email, 0, 'L' );
 
         // Right column - Company
         $this->pdf->SetXY( 110, $y_start );
-        $this->pdf->MultiCell( 0, 6, SMCB_COMPANY_NAME . "\n" . SMCB_COMPANY_ADDRESS . "\n" . SMCB_COMPANY_CITY . ', ' . SMCB_COMPANY_STATE . ' ' . SMCB_COMPANY_ZIP . "\n" . SMCB_COMPANY_EMAIL . "\nEIN: " . SMCB_COMPANY_EIN, 0, 'L' );
+        $this->pdf->MultiCell( 0, 5, SMCB_COMPANY_NAME . "\n" . SMCB_COMPANY_ADDRESS . "\n" . SMCB_COMPANY_CITY . ', ' . SMCB_COMPANY_STATE . ' ' . SMCB_COMPANY_ZIP . "\n" . SMCB_COMPANY_EMAIL . "\nEIN: " . SMCB_COMPANY_EIN, 0, 'L' );
 
-        $this->pdf->Ln( 10 );
+        $this->pdf->Ln( 5 );
 
-        // Event Details Box
+        // Event Details - inline format
         $this->pdf->SetFillColor( $this->colors['light'][0], $this->colors['light'][1], $this->colors['light'][2] );
-        $this->pdf->SetFont( 'helvetica', 'B', 11 );
-        $this->pdf->Cell( 0, 8, 'Event Details', 0, 1, 'L', true );
-        $this->pdf->SetFont( 'helvetica', '', 11 );
-        $this->pdf->Cell( 0, 6, 'Event: ' . $this->contract->event_name, 0, 1 );
-        $this->pdf->Cell( 0, 6, 'Date: ' . smcb_format_date( $this->contract->performance_date ), 0, 1 );
-        $this->pdf->Cell( 0, 6, 'Time: ' . smcb_format_time( $this->contract->first_set_start_time ), 0, 1 );
-        $this->pdf->Ln( 10 );
+        $this->pdf->SetFont( 'helvetica', 'B', 10 );
+        $this->pdf->Cell( 25, 6, 'Event:', 0, 0, 'L', true );
+        $this->pdf->SetFont( 'helvetica', '', 10 );
+        $this->pdf->Cell( 65, 6, $this->contract->event_name, 0, 0, 'L', true );
+        $this->pdf->SetFont( 'helvetica', 'B', 10 );
+        $this->pdf->Cell( 15, 6, 'Date:', 0, 0, 'L', true );
+        $this->pdf->SetFont( 'helvetica', '', 10 );
+        $this->pdf->Cell( 35, 6, smcb_format_date( $this->contract->performance_date ), 0, 0, 'L', true );
+        $this->pdf->SetFont( 'helvetica', 'B', 10 );
+        $this->pdf->Cell( 15, 6, 'Time:', 0, 0, 'L', true );
+        $this->pdf->SetFont( 'helvetica', '', 10 );
+        $this->pdf->Cell( 0, 6, smcb_format_time( $this->contract->first_set_start_time ), 0, 1, 'L', true );
+        $this->pdf->Ln( 5 );
 
         // Line items table
         $this->add_invoice_table();
 
-        // Payment terms
-        $this->pdf->Ln( 10 );
-        $this->pdf->SetFont( 'helvetica', 'B', 11 );
-        $this->pdf->Cell( 0, 6, 'PAYMENT TERMS', 0, 1 );
-        $this->pdf->SetFont( 'helvetica', '', 10 );
-        $this->pdf->MultiCell( 0, 5, 'A deposit of ' . smcb_format_currency( $this->contract->calculated->deposit_amount ) . ' (' . $this->contract->deposit_percentage . '%) is due upon signing of the contract. The remaining balance of ' . smcb_format_currency( $this->contract->calculated->balance_due ) . ' is due on the day of the performance.', 0, 'L' );
+        // Payment terms and methods - side by side
+        $this->pdf->Ln( 5 );
+        $y_start = $this->pdf->GetY();
 
-        // Footer with payment info
-        $this->pdf->Ln( 10 );
-        $this->pdf->SetFont( 'helvetica', 'B', 11 );
-        $this->pdf->Cell( 0, 6, 'PAYMENT METHODS', 0, 1 );
-        $this->pdf->SetFont( 'helvetica', '', 10 );
-        $this->pdf->MultiCell( 0, 5, "Make checks payable to: " . SMCB_COMPANY_NAME . "\nVenmo: @skinnymoo\nPayPal: " . SMCB_COMPANY_EMAIL, 0, 'L' );
+        // Left column - Payment terms
+        $this->pdf->SetFont( 'helvetica', 'B', 10 );
+        $this->pdf->Cell( 90, 5, 'PAYMENT TERMS', 0, 1 );
+        $this->pdf->SetFont( 'helvetica', '', 9 );
+        $this->pdf->MultiCell( 90, 4, 'A deposit of ' . smcb_format_currency( $this->contract->calculated->deposit_amount ) . ' (' . $this->contract->deposit_percentage . '%) is due upon signing. Balance of ' . smcb_format_currency( $this->contract->calculated->balance_due ) . ' due day of performance.', 0, 'L' );
+
+        // Right column - Payment methods
+        $this->pdf->SetXY( 110, $y_start );
+        $this->pdf->SetFont( 'helvetica', 'B', 10 );
+        $this->pdf->Cell( 0, 5, 'PAYMENT METHODS', 0, 1 );
+        $this->pdf->SetX( 110 );
+        $this->pdf->SetFont( 'helvetica', '', 9 );
+        $this->pdf->MultiCell( 0, 4, "Checks payable to: " . SMCB_COMPANY_NAME . "\nVenmo: @skinnymoo  |  PayPal: " . SMCB_COMPANY_EMAIL, 0, 'L' );
 
         return $this->save_pdf( 'invoice' );
     }
@@ -730,18 +736,18 @@ class SMCB_PDF_Generator {
      * Add invoice line items table.
      */
     private function add_invoice_table() {
-        $this->pdf->SetFont( 'helvetica', 'B', 10 );
+        $this->pdf->SetFont( 'helvetica', 'B', 9 );
         $this->pdf->SetFillColor( $this->colors['secondary'][0], $this->colors['secondary'][1], $this->colors['secondary'][2] );
         $this->pdf->SetTextColor( 255, 255, 255 );
 
         // Table header
-        $this->pdf->Cell( 100, 8, 'Description', 1, 0, 'L', true );
-        $this->pdf->Cell( 25, 8, 'Qty', 1, 0, 'C', true );
-        $this->pdf->Cell( 25, 8, 'Unit Price', 1, 0, 'R', true );
-        $this->pdf->Cell( 25, 8, 'Amount', 1, 1, 'R', true );
+        $this->pdf->Cell( 100, 6, 'Description', 1, 0, 'L', true );
+        $this->pdf->Cell( 25, 6, 'Qty', 1, 0, 'C', true );
+        $this->pdf->Cell( 25, 6, 'Unit Price', 1, 0, 'R', true );
+        $this->pdf->Cell( 25, 6, 'Amount', 1, 1, 'R', true );
 
         $this->pdf->SetTextColor( $this->colors['text'][0], $this->colors['text'][1], $this->colors['text'][2] );
-        $this->pdf->SetFont( 'helvetica', '', 10 );
+        $this->pdf->SetFont( 'helvetica', '', 9 );
 
         $total = 0;
 
@@ -751,55 +757,55 @@ class SMCB_PDF_Generator {
                 $amount = floatval( $item->quantity ) * floatval( $item->unit_price );
                 $total += $amount;
 
-                $this->pdf->Cell( 100, 7, $item->description, 1, 0, 'L' );
-                $this->pdf->Cell( 25, 7, number_format( $item->quantity, 0 ), 1, 0, 'C' );
-                $this->pdf->Cell( 25, 7, smcb_format_currency( $item->unit_price ), 1, 0, 'R' );
-                $this->pdf->Cell( 25, 7, smcb_format_currency( $amount ), 1, 1, 'R' );
+                $this->pdf->Cell( 100, 5, $item->description, 1, 0, 'L' );
+                $this->pdf->Cell( 25, 5, number_format( $item->quantity, 0 ), 1, 0, 'C' );
+                $this->pdf->Cell( 25, 5, smcb_format_currency( $item->unit_price ), 1, 0, 'R' );
+                $this->pdf->Cell( 25, 5, smcb_format_currency( $amount ), 1, 1, 'R' );
             }
         }
 
         // Add base compensation if no line items
         if ( empty( $this->contract->line_items ) ) {
-            $this->pdf->Cell( 100, 7, 'Performance Services - ' . $this->contract->event_name, 1, 0, 'L' );
-            $this->pdf->Cell( 25, 7, '1', 1, 0, 'C' );
-            $this->pdf->Cell( 25, 7, smcb_format_currency( $this->contract->base_compensation ), 1, 0, 'R' );
-            $this->pdf->Cell( 25, 7, smcb_format_currency( $this->contract->base_compensation ), 1, 1, 'R' );
+            $this->pdf->Cell( 100, 5, 'Performance Services - ' . $this->contract->event_name, 1, 0, 'L' );
+            $this->pdf->Cell( 25, 5, '1', 1, 0, 'C' );
+            $this->pdf->Cell( 25, 5, smcb_format_currency( $this->contract->base_compensation ), 1, 0, 'R' );
+            $this->pdf->Cell( 25, 5, smcb_format_currency( $this->contract->base_compensation ), 1, 1, 'R' );
             $total = $this->contract->base_compensation;
         }
 
         // Travel fee
         if ( $this->contract->mileage_travel_fee > 0 ) {
             $total += $this->contract->mileage_travel_fee;
-            $this->pdf->Cell( 100, 7, 'Travel / Mileage Fee', 1, 0, 'L' );
-            $this->pdf->Cell( 25, 7, '1', 1, 0, 'C' );
-            $this->pdf->Cell( 25, 7, smcb_format_currency( $this->contract->mileage_travel_fee ), 1, 0, 'R' );
-            $this->pdf->Cell( 25, 7, smcb_format_currency( $this->contract->mileage_travel_fee ), 1, 1, 'R' );
+            $this->pdf->Cell( 100, 5, 'Travel / Mileage Fee', 1, 0, 'L' );
+            $this->pdf->Cell( 25, 5, '1', 1, 0, 'C' );
+            $this->pdf->Cell( 25, 5, smcb_format_currency( $this->contract->mileage_travel_fee ), 1, 0, 'R' );
+            $this->pdf->Cell( 25, 5, smcb_format_currency( $this->contract->mileage_travel_fee ), 1, 1, 'R' );
         }
 
         // Early load-in fee
         if ( $this->contract->early_loadin_required && $this->contract->early_loadin_hours > 0 ) {
             $early_fee = $this->contract->calculated->early_loadin_fee;
             $total += $early_fee;
-            $this->pdf->Cell( 100, 7, 'Early Load-in Fee (' . $this->contract->early_loadin_hours . ' hours @ $' . SMCB_EARLY_LOADIN_RATE . '/hr)', 1, 0, 'L' );
-            $this->pdf->Cell( 25, 7, '1', 1, 0, 'C' );
-            $this->pdf->Cell( 25, 7, smcb_format_currency( $early_fee ), 1, 0, 'R' );
-            $this->pdf->Cell( 25, 7, smcb_format_currency( $early_fee ), 1, 1, 'R' );
+            $this->pdf->Cell( 100, 5, 'Early Load-in (' . $this->contract->early_loadin_hours . 'hrs @ $' . SMCB_EARLY_LOADIN_RATE . '/hr)', 1, 0, 'L' );
+            $this->pdf->Cell( 25, 5, '1', 1, 0, 'C' );
+            $this->pdf->Cell( 25, 5, smcb_format_currency( $early_fee ), 1, 0, 'R' );
+            $this->pdf->Cell( 25, 5, smcb_format_currency( $early_fee ), 1, 1, 'R' );
         }
 
         // Total row
-        $this->pdf->SetFont( 'helvetica', 'B', 11 );
+        $this->pdf->SetFont( 'helvetica', 'B', 10 );
         $this->pdf->SetFillColor( $this->colors['light'][0], $this->colors['light'][1], $this->colors['light'][2] );
-        $this->pdf->Cell( 150, 8, 'TOTAL', 1, 0, 'R', true );
-        $this->pdf->Cell( 25, 8, smcb_format_currency( $this->contract->calculated->total_compensation ), 1, 1, 'R', true );
+        $this->pdf->Cell( 150, 6, 'TOTAL', 1, 0, 'R', true );
+        $this->pdf->Cell( 25, 6, smcb_format_currency( $this->contract->calculated->total_compensation ), 1, 1, 'R', true );
 
         // Deposit and balance
-        $this->pdf->SetFont( 'helvetica', '', 10 );
-        $this->pdf->Cell( 150, 7, 'Deposit Due (' . $this->contract->deposit_percentage . '%)', 1, 0, 'R' );
-        $this->pdf->Cell( 25, 7, smcb_format_currency( $this->contract->calculated->deposit_amount ), 1, 1, 'R' );
+        $this->pdf->SetFont( 'helvetica', '', 9 );
+        $this->pdf->Cell( 150, 5, 'Deposit Due (' . $this->contract->deposit_percentage . '%)', 1, 0, 'R' );
+        $this->pdf->Cell( 25, 5, smcb_format_currency( $this->contract->calculated->deposit_amount ), 1, 1, 'R' );
 
-        $this->pdf->SetFont( 'helvetica', 'B', 10 );
-        $this->pdf->Cell( 150, 7, 'BALANCE DUE AT EVENT', 1, 0, 'R' );
-        $this->pdf->Cell( 25, 7, smcb_format_currency( $this->contract->calculated->balance_due ), 1, 1, 'R' );
+        $this->pdf->SetFont( 'helvetica', 'B', 9 );
+        $this->pdf->Cell( 150, 5, 'BALANCE DUE AT EVENT', 1, 0, 'R' );
+        $this->pdf->Cell( 25, 5, smcb_format_currency( $this->contract->calculated->balance_due ), 1, 1, 'R' );
     }
 
     /**
