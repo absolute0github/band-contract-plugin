@@ -168,12 +168,24 @@ class SMCB_Admin {
         if ( $contract_id > 0 ) {
             // Update existing contract
             $result = $this->contract_model->update( $contract_id, $data );
-            $message = 'updated';
+            $message = $result ? 'updated' : 'error';
+
+            // Log any database errors
+            if ( ! $result ) {
+                global $wpdb;
+                error_log( 'SMCB Contract Update Error: ' . $wpdb->last_error );
+            }
         } else {
             // Create new contract
             $contract_id = $this->contract_model->create( $data );
             $result = $contract_id !== false;
-            $message = 'created';
+            $message = $result ? 'created' : 'error';
+
+            // Log any database errors
+            if ( ! $result ) {
+                global $wpdb;
+                error_log( 'SMCB Contract Create Error: ' . $wpdb->last_error );
+            }
         }
 
         if ( $result && $action === 'send' ) {
@@ -330,6 +342,10 @@ class SMCB_Admin {
                 break;
             case 'deleted':
                 $text = __( 'Contract deleted successfully.', 'skinny-moo-contract-builder' );
+                break;
+            case 'error':
+                $text = __( 'Error saving contract. Please check the error log or ensure database tables are up to date (deactivate and reactivate the plugin).', 'skinny-moo-contract-builder' );
+                $type = 'error';
                 break;
             default:
                 return;

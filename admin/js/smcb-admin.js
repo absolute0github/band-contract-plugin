@@ -33,10 +33,12 @@
         });
 
         // Save & Send button
-        $('#save-send').on('click', function() {
+        $('#save-send').on('click', function(e) {
             if (confirm(smcb_admin.confirm_send)) {
                 $('#smcb_action').val('send');
+                return true; // Allow form submission
             } else {
+                e.preventDefault();
                 return false;
             }
         });
