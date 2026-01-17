@@ -3,7 +3,7 @@
  * Plugin Name: Skinny Moo Contract Builder
  * Plugin URI: https://absolute0.net
  * Description: Create, send, and manage performance agreements and invoices with digital signing capabilities.
- * Version: 1.0.1
+ * Version: 1.0.2
  * Author: Jay Goodman
  * Author URI: https://absolute0.net
  * License: GPL-2.0+
@@ -20,7 +20,7 @@ if ( ! defined( 'WPINC' ) ) {
 /**
  * Plugin version.
  */
-define( 'SMCB_VERSION', '1.0.1' );
+define( 'SMCB_VERSION', '1.0.2' );
 
 /**
  * Plugin directory path.
@@ -75,23 +75,39 @@ function smcb_init_update_checker() {
     if ( file_exists( $update_checker_path ) ) {
         require_once $update_checker_path;
 
-        $update_checker = YahnisElsts\PluginUpdateChecker\v5\PucFactory::buildUpdateChecker(
-            SMCB_GITHUB_REPO,
-            __FILE__,
-            'skinny-moo-contract-builder'
-        );
+        try {
+            $update_checker = YahnisElsts\PluginUpdateChecker\v5\PucFactory::buildUpdateChecker(
+                SMCB_GITHUB_REPO,
+                __FILE__,
+                'skinny-moo-contract-builder'
+            );
 
-        // Set the branch that contains the stable release
-        $update_checker->setBranch( 'main' );
+            // Set the branch that contains the stable release
+            $update_checker->setBranch( 'main' );
 
-        // Optional: If your repository is private, uncomment and add your token
-        // $update_checker->setAuthentication( 'your-github-personal-access-token' );
+            // Optional: If your repository is private, uncomment and add your token
+            // $update_checker->setAuthentication( 'your-github-personal-access-token' );
 
-        // Optional: Enable release assets (if you attach zip files to releases)
-        $update_checker->getVcsApi()->enableReleaseAssets();
+            // Optional: Enable release assets (if you attach zip files to releases)
+            $update_checker->getVcsApi()->enableReleaseAssets();
+        } catch ( Exception $e ) {
+            // Silently fail if update checker has issues
+            error_log( 'SMCB Update Checker Error: ' . $e->getMessage() );
+        }
     }
 }
 add_action( 'init', 'smcb_init_update_checker' );
+
+/**
+ * Increase timeout for GitHub API requests.
+ */
+function smcb_http_request_timeout( $timeout, $url ) {
+    if ( strpos( $url, 'api.github.com' ) !== false || strpos( $url, 'github.com' ) !== false ) {
+        return 15; // 15 seconds timeout for GitHub
+    }
+    return $timeout;
+}
+add_filter( 'http_request_timeout', 'smcb_http_request_timeout', 10, 2 );
 
 /**
  * Activation hook.
@@ -176,6 +192,11 @@ add_action( 'rest_api_init', 'smcb_init_rest_api' );
 function smcb_plugin_action_links( $links ) {
     $settings_link = '<a href="' . admin_url( 'admin.php?page=smcb-contracts' ) . '">' . __( 'Contracts', 'skinny-moo-contract-builder' ) . '</a>';
     array_unshift( $links, $settings_link );
+
+    // Add check for updates link
+    $update_link = '<a href="' . wp_nonce_url( admin_url( 'plugins.php?puc_check_for_updates=1&puc_slug=skinny-moo-contract-builder' ), 'puc_check_for_updates' ) . '">' . __( 'Check for Updates', 'skinny-moo-contract-builder' ) . '</a>';
+    $links[] = $update_link;
+
     return $links;
 }
 add_filter( 'plugin_action_links_' . SMCB_PLUGIN_BASENAME, 'smcb_plugin_action_links' );
