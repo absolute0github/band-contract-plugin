@@ -54,13 +54,18 @@ class SMCB_Email {
             return false;
         }
 
-        $to = $this->contract->email;
+        $to = $this->get_recipient_email( $this->contract->email );
         $subject = $this->get_contract_subject();
         $message = $this->get_contract_email_body();
         $headers = $this->get_email_headers();
 
         // Add reply-to header
         $headers[] = 'Reply-To: ' . SMCB_COMPANY_NAME . ' <' . SMCB_COMPANY_EMAIL . '>';
+
+        // Add test mode indicator to subject if in test mode
+        if ( $this->is_test_mode() ) {
+            $subject = '[TEST] ' . $subject;
+        }
 
         $sent = wp_mail( $to, $subject, $message, $headers );
 
@@ -84,13 +89,18 @@ class SMCB_Email {
             return false;
         }
 
-        $to = $this->contract->email;
+        $to = $this->get_recipient_email( $this->contract->email );
         $subject = $this->get_confirmation_subject();
         $message = $this->get_confirmation_email_body();
         $headers = $this->get_email_headers();
 
         // Add reply-to header
         $headers[] = 'Reply-To: ' . SMCB_COMPANY_NAME . ' <' . SMCB_COMPANY_EMAIL . '>';
+
+        // Add test mode indicator to subject if in test mode
+        if ( $this->is_test_mode() ) {
+            $subject = '[TEST] ' . $subject;
+        }
 
         return wp_mail( $to, $subject, $message, $headers, $attachments );
     }
@@ -105,12 +115,42 @@ class SMCB_Email {
             return false;
         }
 
-        $to = SMCB_COMPANY_EMAIL;
+        $to = $this->get_recipient_email( SMCB_COMPANY_EMAIL );
         $subject = $this->get_admin_notification_subject();
         $message = $this->get_admin_notification_body();
         $headers = $this->get_email_headers();
 
+        // Add test mode indicator to subject if in test mode
+        if ( $this->is_test_mode() ) {
+            $subject = '[TEST] ' . $subject;
+        }
+
         return wp_mail( $to, $subject, $message, $headers );
+    }
+
+    /**
+     * Check if test mode is enabled.
+     *
+     * @return bool True if test mode is enabled.
+     */
+    private function is_test_mode() {
+        return (bool) get_option( 'smcb_test_mode', 0 );
+    }
+
+    /**
+     * Get recipient email, redirecting to test email if test mode is enabled.
+     *
+     * @param string $original_email The original recipient email.
+     * @return string The email to send to.
+     */
+    private function get_recipient_email( $original_email ) {
+        if ( $this->is_test_mode() ) {
+            $test_email = get_option( 'smcb_test_email', 'jason@absolute0.net' );
+            if ( ! empty( $test_email ) ) {
+                return $test_email;
+            }
+        }
+        return $original_email;
     }
 
     /**

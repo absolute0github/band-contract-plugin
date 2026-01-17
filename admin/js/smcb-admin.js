@@ -18,6 +18,7 @@
         initLineItems();
         initCalculations();
         initConditionalFields();
+        initTestMode();
     }
 
     /**
@@ -424,6 +425,91 @@
                 }
             });
         });
+    }
+
+    /**
+     * Initialize test mode functionality
+     */
+    function initTestMode() {
+        $('#fill-test-data').on('click', function() {
+            fillTestData();
+        });
+    }
+
+    /**
+     * Fill form with test data
+     */
+    function fillTestData() {
+        // Generate a random date 30-60 days from now
+        var performanceDate = new Date();
+        performanceDate.setDate(performanceDate.getDate() + Math.floor(Math.random() * 30) + 30);
+        var dateStr = performanceDate.toISOString().split('T')[0];
+
+        // Client Information
+        $('#client_company_name').val('Test Venue & Bar');
+        $('#contact_person_name').val('John Smith');
+        $('#street_address').val('123 Main Street');
+        $('#city').val('Cleveland');
+        $('#state').val('Ohio');
+        $('#zip_code').val('44114');
+        $('#phone').val('(216) 555-1234');
+        $('#email').val('test@example.com');
+
+        // Performance Details
+        $('#event_name').val('Summer Music Festival');
+        $('#performance_date').val(dateStr);
+        $('#load_in_time').val('16:00');
+        $('#first_set_start_time').val('19:00');
+        $('#number_of_sets').val('3');
+        $('#set_length').val('60');
+        $('#break_length').val('30');
+
+        // Venue Details
+        $('#venue_name').val('The Grand Ballroom');
+        $('#venue_contact_person').val('Jane Doe');
+        $('#venue_address').val('456 Oak Avenue');
+        $('#venue_city').val('Cleveland');
+        $('#venue_state').val('Ohio');
+        $('#venue_zip').val('44114');
+        $('#venue_phone').val('(216) 555-5678');
+        $('#venue_email').val('venue@example.com');
+        $('#inside_outside').val('inside');
+        $('#stage_available').val('yes');
+        $('#power_requirements').val('Two 20A circuits within 50ft');
+        $('#loadin_location').val('Back entrance near the loading dock');
+        $('#performance_location').val('Main stage area in the grand ballroom');
+
+        // Production
+        $('#sound_system').val('we_provide');
+        $('#lights').val('we_provide');
+        $('#music_between_sets').val('we_provide');
+
+        // Music Preferences
+        $('#preferred_genre').val('mix');
+
+        // Accommodations
+        $('#accommodations_provided').val('no');
+        $('#mileage_travel_fee').val('50');
+
+        // Compensation
+        $('#base_compensation').val('1500');
+        $('#deposit_percentage').val('30');
+        $('#additional_compensation').val('$50 food and drink tab for the band');
+
+        // Services
+        $('#services_description').val('Live musical entertainment consisting of rock, pop, country, and dance music performed by the Skinny Moo band. Three one-hour sets with 30-minute breaks between sets.');
+        $('#attire').val('Jeans/Shorts - T-shirts');
+        $('#audience_rating').val('pg-13');
+
+        // Cover Letter
+        $('#cover_letter_message').val('Thank you for choosing Skinny Moo for your event! We are excited to perform at your Summer Music Festival and look forward to making it a memorable evening.');
+
+        // Trigger calculations
+        calculateSetTimes();
+        calculateTotals();
+
+        // Show notification
+        alert('Test data has been filled. Review and adjust as needed before saving.');
     }
 
     // Initialize when document is ready

@@ -27,6 +27,21 @@ $page_title = $is_edit
 
     <hr class="wp-header-end">
 
+    <?php if ( get_option( 'smcb_test_mode', 0 ) ) : ?>
+        <div class="notice notice-warning smcb-test-mode-banner">
+            <p>
+                <strong><?php esc_html_e( 'Test Mode Enabled', 'skinny-moo-contract-builder' ); ?></strong> -
+                <?php esc_html_e( 'Emails will be redirected to the test email address.', 'skinny-moo-contract-builder' ); ?>
+                <?php if ( ! $is_edit ) : ?>
+                    <button type="button" class="button button-secondary" id="fill-test-data" style="margin-left: 15px;">
+                        <span class="dashicons dashicons-database-add" style="vertical-align: middle;"></span>
+                        <?php esc_html_e( 'Fill Test Data', 'skinny-moo-contract-builder' ); ?>
+                    </button>
+                <?php endif; ?>
+            </p>
+        </div>
+    <?php endif; ?>
+
     <form method="post" action="" class="smcb-contract-form" id="smcb-contract-form">
         <?php wp_nonce_field( 'smcb_save_contract', 'smcb_contract_nonce' ); ?>
         <input type="hidden" name="contract_id" value="<?php echo esc_attr( $is_edit ? $contract->id : 0 ); ?>">

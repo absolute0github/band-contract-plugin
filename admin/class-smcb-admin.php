@@ -86,15 +86,15 @@ class SMCB_Admin {
             array( $this, 'render_add_contract_page' )
         );
 
-        // Submenu - Settings (hidden for now)
-        // add_submenu_page(
-        //     'smcb-contracts',
-        //     __( 'Settings', 'skinny-moo-contract-builder' ),
-        //     __( 'Settings', 'skinny-moo-contract-builder' ),
-        //     'manage_options',
-        //     'smcb-settings',
-        //     array( $this, 'render_settings_page' )
-        // );
+        // Submenu - Settings
+        add_submenu_page(
+            'smcb-contracts',
+            __( 'Settings', 'skinny-moo-contract-builder' ),
+            __( 'Settings', 'skinny-moo-contract-builder' ),
+            'manage_options',
+            'smcb-settings',
+            array( $this, 'render_settings_page' )
+        );
     }
 
     /**
@@ -550,5 +550,28 @@ class SMCB_Admin {
         } catch ( Exception $e ) {
             wp_send_json_error( array( 'message' => $e->getMessage() ) );
         }
+    }
+
+    /**
+     * Render settings page.
+     */
+    public function render_settings_page() {
+        // Save settings if form submitted
+        if ( isset( $_POST['smcb_save_settings'] ) && isset( $_POST['smcb_settings_nonce'] ) ) {
+            if ( wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['smcb_settings_nonce'] ) ), 'smcb_save_settings' ) ) {
+                $test_mode = isset( $_POST['smcb_test_mode'] ) ? 1 : 0;
+                $test_email = isset( $_POST['smcb_test_email'] ) ? sanitize_email( wp_unslash( $_POST['smcb_test_email'] ) ) : '';
+
+                update_option( 'smcb_test_mode', $test_mode );
+                update_option( 'smcb_test_email', $test_email );
+
+                echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Settings saved.', 'skinny-moo-contract-builder' ) . '</p></div>';
+            }
+        }
+
+        $test_mode = get_option( 'smcb_test_mode', 0 );
+        $test_email = get_option( 'smcb_test_email', 'jason@absolute0.net' );
+
+        include SMCB_PLUGIN_DIR . 'admin/partials/settings-page.php';
     }
 }
