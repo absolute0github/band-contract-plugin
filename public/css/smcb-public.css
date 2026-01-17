@@ -1,0 +1,603 @@
+/**
+ * Skinny Moo Contract Builder - Public Styles
+ */
+
+/* Reset and Base */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+.smcb-contract-page {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    color: #333;
+    background: #f5f5f5;
+    margin: 0;
+    padding: 0;
+}
+
+.smcb-page-wrapper {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.smcb-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* Header */
+.smcb-header {
+    background: #1a1a1a;
+    padding: 20px 0;
+}
+
+.smcb-logo img {
+    max-width: 180px;
+    height: auto;
+}
+
+/* Main */
+.smcb-main {
+    flex: 1;
+    padding: 40px 0;
+}
+
+/* Messages */
+.smcb-message {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    padding: 25px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+}
+
+.smcb-message-icon {
+    font-size: 32px;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.smcb-message-content h2 {
+    margin: 0 0 10px 0;
+    font-size: 20px;
+}
+
+.smcb-message-content p {
+    margin: 0;
+}
+
+.smcb-message-content p + p {
+    margin-top: 10px;
+}
+
+.smcb-message-success {
+    background: #ecf7ed;
+    border: 1px solid #c3e6cb;
+}
+
+.smcb-message-success .smcb-message-icon {
+    color: #28a745;
+}
+
+.smcb-message-warning {
+    background: #fff8e5;
+    border: 1px solid #ffeaa7;
+}
+
+.smcb-message-warning .smcb-message-icon {
+    color: #f1c40f;
+}
+
+/* Contract Header */
+.smcb-contract-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.smcb-contract-header h1 {
+    font-size: 32px;
+    color: #1a1a1a;
+    margin: 0 0 10px 0;
+}
+
+.smcb-contract-number {
+    color: #666;
+    font-size: 14px;
+}
+
+/* Event Summary */
+.smcb-event-summary {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+    background: #fff;
+    padding: 25px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.smcb-event-summary-item {
+    text-align: center;
+}
+
+.smcb-event-summary-item .smcb-label {
+    display: block;
+    font-size: 12px;
+    text-transform: uppercase;
+    color: #666;
+    margin-bottom: 5px;
+}
+
+.smcb-event-summary-item .smcb-value {
+    display: block;
+    font-size: 18px;
+    font-weight: 600;
+    color: #1a1a1a;
+}
+
+.smcb-event-summary-item .smcb-value-highlight {
+    color: #c41230;
+}
+
+/* Sections */
+.smcb-section {
+    background: #fff;
+    border-radius: 8px;
+    padding: 30px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.smcb-section h2 {
+    font-size: 20px;
+    color: #1a1a1a;
+    margin: 0 0 20px 0;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.smcb-section h3 {
+    font-size: 16px;
+    color: #333;
+    margin: 20px 0 10px 0;
+}
+
+.smcb-section-highlight {
+    background: linear-gradient(135deg, #fff 0%, #fafafa 100%);
+    border: 2px solid #f0f0f0;
+}
+
+/* Parties */
+.smcb-parties {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 30px;
+}
+
+.smcb-party h3 {
+    font-size: 14px;
+    text-transform: uppercase;
+    color: #c41230;
+    margin: 0 0 10px 0;
+}
+
+.smcb-party p {
+    margin: 5px 0;
+    font-size: 14px;
+}
+
+.smcb-party a {
+    color: #c41230;
+    text-decoration: none;
+}
+
+/* Details Grid */
+.smcb-details-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.smcb-detail {
+    padding: 15px;
+    background: #f9f9f9;
+    border-radius: 6px;
+}
+
+.smcb-detail-label {
+    display: block;
+    font-size: 12px;
+    text-transform: uppercase;
+    color: #666;
+    margin-bottom: 5px;
+}
+
+.smcb-detail-value {
+    display: block;
+    font-size: 16px;
+    color: #1a1a1a;
+    font-weight: 500;
+}
+
+/* Set Schedule */
+.smcb-set-schedule {
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+.smcb-sets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.smcb-set {
+    background: #f9f9f9;
+    padding: 12px 20px;
+    border-radius: 6px;
+    border-left: 4px solid #c41230;
+}
+
+.smcb-set-number {
+    display: block;
+    font-size: 12px;
+    text-transform: uppercase;
+    color: #c41230;
+    font-weight: 600;
+}
+
+.smcb-set-time {
+    display: block;
+    font-size: 16px;
+    color: #1a1a1a;
+}
+
+/* Compensation Table */
+.smcb-compensation-table {
+    width: 100%;
+    max-width: 450px;
+    border-collapse: collapse;
+}
+
+.smcb-compensation-table td {
+    padding: 12px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.smcb-compensation-table .smcb-amount {
+    text-align: right;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 16px;
+}
+
+.smcb-compensation-table .smcb-total-row {
+    font-size: 18px;
+}
+
+.smcb-compensation-table .smcb-total-row td {
+    padding: 15px 0;
+    border-bottom: 2px solid #1a1a1a;
+}
+
+/* Payment Terms */
+.smcb-payment-terms {
+    margin-top: 25px;
+    padding: 20px;
+    background: #f9f9f9;
+    border-radius: 6px;
+}
+
+.smcb-payment-terms h3 {
+    margin: 0 0 15px 0;
+}
+
+.smcb-payment-breakdown {
+    display: flex;
+    gap: 30px;
+}
+
+.smcb-payment-item {
+    flex: 1;
+}
+
+.smcb-payment-label {
+    display: block;
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 5px;
+}
+
+.smcb-payment-amount {
+    display: block;
+    font-size: 24px;
+    font-weight: 600;
+    color: #c41230;
+}
+
+/* Terms Section */
+.smcb-terms-section .smcb-terms {
+    max-height: 300px;
+    overflow-y: auto;
+    padding-right: 15px;
+}
+
+.smcb-terms ol {
+    padding-left: 20px;
+    margin: 0;
+}
+
+.smcb-terms li {
+    margin-bottom: 15px;
+    font-size: 14px;
+    line-height: 1.7;
+}
+
+.smcb-additional-notes {
+    margin-top: 20px;
+    padding: 15px;
+    background: #fff8e5;
+    border-left: 4px solid #f1c40f;
+    border-radius: 4px;
+}
+
+/* Signature Section */
+.smcb-signature-section {
+    border: 2px solid #c41230;
+}
+
+.smcb-sign-intro {
+    font-size: 15px;
+    margin-bottom: 25px;
+}
+
+.smcb-form-row {
+    margin-bottom: 20px;
+}
+
+.smcb-form-row label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #1a1a1a;
+}
+
+.smcb-form-row label .required {
+    color: #c41230;
+}
+
+.smcb-form-row input[type="text"] {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    font-size: 16px;
+    transition: border-color 0.3s;
+}
+
+.smcb-form-row input[type="text"]:focus {
+    border-color: #c41230;
+    outline: none;
+}
+
+/* Signature Pad */
+.smcb-signature-wrapper {
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    background: #fff;
+    overflow: hidden;
+}
+
+.smcb-signature-pad {
+    width: 100%;
+    height: 200px;
+    display: block;
+    cursor: crosshair;
+}
+
+.smcb-signature-actions {
+    margin-top: 10px;
+}
+
+.smcb-signature-help {
+    font-size: 13px;
+    color: #666;
+    margin-top: 8px;
+}
+
+/* Checkbox */
+.smcb-checkbox-row {
+    margin: 25px 0;
+}
+
+.smcb-checkbox-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    cursor: pointer;
+}
+
+.smcb-checkbox-label input[type="checkbox"] {
+    width: 22px;
+    height: 22px;
+    margin: 0;
+    flex-shrink: 0;
+    cursor: pointer;
+}
+
+.smcb-checkbox-label span {
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* Buttons */
+.smcb-btn {
+    display: inline-block;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-decoration: none;
+}
+
+.smcb-btn-primary {
+    background: #c41230;
+    color: #fff;
+}
+
+.smcb-btn-primary:hover {
+    background: #a30f28;
+}
+
+.smcb-btn-primary:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+.smcb-btn-secondary {
+    background: #f0f0f0;
+    color: #333;
+}
+
+.smcb-btn-secondary:hover {
+    background: #e0e0e0;
+}
+
+.smcb-btn-large {
+    padding: 15px 40px;
+    font-size: 18px;
+    width: 100%;
+}
+
+/* Messages */
+.smcb-error-message {
+    background: #fbe9e7;
+    border: 1px solid #ef5350;
+    color: #c62828;
+    padding: 15px;
+    border-radius: 6px;
+    margin-top: 15px;
+}
+
+.smcb-success-message {
+    background: #e8f5e9;
+    border: 1px solid #66bb6a;
+    color: #2e7d32;
+    padding: 15px;
+    border-radius: 6px;
+    margin-top: 15px;
+}
+
+/* Signed Section */
+.smcb-signed-section {
+    background: #ecf7ed;
+    border: 2px solid #c3e6cb;
+}
+
+.smcb-signature-display {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+}
+
+.smcb-signature-image {
+    background: #fff;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+}
+
+.smcb-signature-image img {
+    max-width: 250px;
+    height: auto;
+}
+
+.smcb-signature-details p {
+    margin: 5px 0;
+}
+
+/* Footer */
+.smcb-footer {
+    background: #1a1a1a;
+    color: #999;
+    padding: 30px 0;
+    text-align: center;
+}
+
+.smcb-footer p {
+    margin: 5px 0;
+    font-size: 14px;
+}
+
+.smcb-footer a {
+    color: #fff;
+    text-decoration: none;
+}
+
+.smcb-footer a:hover {
+    color: #c41230;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .smcb-event-summary {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .smcb-parties {
+        grid-template-columns: 1fr;
+    }
+
+    .smcb-details-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .smcb-payment-breakdown {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .smcb-signature-display {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .smcb-section {
+        padding: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .smcb-event-summary {
+        grid-template-columns: 1fr;
+    }
+
+    .smcb-contract-header h1 {
+        font-size: 24px;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .smcb-header,
+    .smcb-footer,
+    .smcb-signature-section,
+    .smcb-message {
+        display: none;
+    }
+
+    .smcb-section {
+        box-shadow: none;
+        border: 1px solid #ddd;
+        page-break-inside: avoid;
+    }
+}

@@ -1,0 +1,21 @@
+{
+    "name": "skinny-moo/contract-builder",
+    "description": "WordPress plugin for creating and managing performance agreements with digital signing",
+    "type": "wordpress-plugin",
+    "license": "GPL-2.0+",
+    "require": {
+        "php": ">=7.4",
+        "tecnickcom/tcpdf": "^6.6"
+    },
+    "autoload": {
+        "classmap": [
+            "includes/",
+            "admin/",
+            "public/",
+            "api/"
+        ]
+    },
+    "config": {
+        "vendor-dir": "vendor"
+    }
+}

@@ -1,0 +1,22 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.idea/
+.vscode/
+*.sublime-*
+
+# Build artifacts
+*.zip
+node_modules/
+
+# Local development
+*.log
+*.bak
+
+# Reference docs (not needed in release)
+reference-docs/
+
+# Old zip files
+moo-contract-builder.zip
