@@ -516,12 +516,18 @@ $page_title = $is_edit
                         </div>
 
                         <div class="smcb-publish-actions">
-                            <button type="submit" name="smcb_save_contract" class="button button-large" id="save-draft">
-                                <?php esc_html_e( 'Save Draft', 'skinny-moo-contract-builder' ); ?>
+                            <button type="submit" name="smcb_save_contract" class="button button-primary button-large" id="save-draft">
+                                <?php esc_html_e( 'Save', 'skinny-moo-contract-builder' ); ?>
                             </button>
-                            <button type="submit" name="smcb_save_contract" class="button button-primary button-large" id="save-send">
-                                <?php esc_html_e( 'Save & Send', 'skinny-moo-contract-builder' ); ?>
-                            </button>
+                            <?php if ( $is_edit ) : ?>
+                                <button type="submit" name="smcb_save_contract" class="button button-large" id="save-send">
+                                    <?php esc_html_e( 'Save & Send', 'skinny-moo-contract-builder' ); ?>
+                                </button>
+                            <?php else : ?>
+                                <button type="submit" name="smcb_save_contract" class="button button-large" id="save-send">
+                                    <?php esc_html_e( 'Save & Send', 'skinny-moo-contract-builder' ); ?>
+                                </button>
+                            <?php endif; ?>
                         </div>
 
                         <?php if ( $is_edit ) : ?>

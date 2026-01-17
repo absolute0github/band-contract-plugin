@@ -325,20 +325,34 @@ class SMCB_PDF_Generator {
     }
 
     /**
-     * Add logo to PDF.
+     * Add logo to PDF (full width, centered with address below).
+     *
+     * @param bool $with_address Whether to include address below logo.
      */
-    private function add_logo() {
+    private function add_logo( $with_address = true ) {
         $logo_path = SMCB_PLUGIN_DIR . 'assets/images/logo.png';
+        $page_width = $this->pdf->getPageWidth();
+        $margins = $this->pdf->getMargins();
+        $content_width = $page_width - $margins['left'] - $margins['right'];
 
         if ( file_exists( $logo_path ) ) {
-            $this->pdf->Image( $logo_path, 20, 20, 60 );
-            $this->pdf->Ln( 25 );
+            // Center the logo at full content width
+            $this->pdf->Image( $logo_path, $margins['left'], 15, $content_width );
+            $this->pdf->Ln( 35 );
         } else {
             // Text fallback
             $this->pdf->SetFont( 'helvetica', 'B', 24 );
             $this->pdf->SetTextColor( $this->colors['primary'][0], $this->colors['primary'][1], $this->colors['primary'][2] );
-            $this->pdf->Cell( 0, 15, 'SKINNY MOO', 0, 1 );
+            $this->pdf->Cell( 0, 15, 'SKINNY MOO', 0, 1, 'C' );
             $this->pdf->SetTextColor( $this->colors['text'][0], $this->colors['text'][1], $this->colors['text'][2] );
+        }
+
+        // Add centered address below logo
+        if ( $with_address ) {
+            $this->pdf->SetFont( 'helvetica', '', 10 );
+            $this->pdf->Cell( 0, 5, SMCB_COMPANY_ADDRESS . ', ' . SMCB_COMPANY_CITY . ', ' . SMCB_COMPANY_STATE . ' ' . SMCB_COMPANY_ZIP, 0, 1, 'C' );
+            $this->pdf->Cell( 0, 5, SMCB_COMPANY_PHONE . ' | ' . SMCB_COMPANY_EMAIL . ' | ' . SMCB_COMPANY_WEBSITE, 0, 1, 'C' );
+            $this->pdf->Ln( 5 );
         }
     }
 
@@ -346,7 +360,7 @@ class SMCB_PDF_Generator {
      * Add contract header.
      */
     private function add_contract_header() {
-        $this->add_logo();
+        $this->add_logo( true );
 
         $this->pdf->SetFont( 'helvetica', 'B', 20 );
         $this->pdf->SetTextColor( $this->colors['secondary'][0], $this->colors['secondary'][1], $this->colors['secondary'][2] );
@@ -355,7 +369,7 @@ class SMCB_PDF_Generator {
 
         $this->pdf->SetFont( 'helvetica', '', 11 );
         $this->pdf->Cell( 0, 6, 'Contract Number: ' . $this->contract->contract_number, 0, 1, 'C' );
-        $this->pdf->Ln( 10 );
+        $this->pdf->Ln( 5 );
     }
 
     /**
@@ -369,15 +383,11 @@ class SMCB_PDF_Generator {
 
         $this->pdf->SetFont( 'helvetica', '', 11 );
 
-        // Performer
+        // Performer (simplified since address is in header)
         $this->pdf->SetFont( 'helvetica', 'B', 11 );
         $this->pdf->Cell( 25, 6, 'PERFORMER:', 0, 0 );
         $this->pdf->SetFont( 'helvetica', '', 11 );
         $this->pdf->Cell( 0, 6, SMCB_COMPANY_NAME . ' ("Skinny Moo")', 0, 1 );
-        $this->pdf->Cell( 25, 6, '', 0, 0 );
-        $this->pdf->Cell( 0, 6, SMCB_COMPANY_ADDRESS . ', ' . SMCB_COMPANY_CITY . ', ' . SMCB_COMPANY_STATE . ' ' . SMCB_COMPANY_ZIP, 0, 1 );
-        $this->pdf->Cell( 25, 6, '', 0, 0 );
-        $this->pdf->Cell( 0, 6, SMCB_COMPANY_PHONE . ' | ' . SMCB_COMPANY_EMAIL, 0, 1 );
         $this->pdf->Ln( 3 );
 
         // Client
@@ -391,7 +401,7 @@ class SMCB_PDF_Generator {
         $this->pdf->Cell( 0, 6, $this->contract->street_address . ', ' . $this->contract->city . ', ' . $this->contract->state . ' ' . $this->contract->zip_code, 0, 1 );
         $this->pdf->Cell( 25, 6, '', 0, 0 );
         $this->pdf->Cell( 0, 6, $this->contract->phone . ' | ' . $this->contract->email, 0, 1 );
-        $this->pdf->Ln( 10 );
+        $this->pdf->Ln( 8 );
     }
 
     /**
@@ -414,18 +424,48 @@ class SMCB_PDF_Generator {
         $this->add_detail_row( 'Set Length', $this->contract->set_length . ' minutes' );
         $this->add_detail_row( 'Break Length', $this->contract->break_length . ' minutes' );
 
-        // Set schedule
-        $this->pdf->Ln( 3 );
+        // Set schedule in equal boxes
+        $this->pdf->Ln( 5 );
         $this->pdf->SetFont( 'helvetica', 'B', 11 );
-        $this->pdf->Cell( 40, 6, 'Set Schedule:', 0, 0 );
-        $this->pdf->SetFont( 'helvetica', '', 11 );
-        $set_times = array();
-        foreach ( $this->contract->calculated->set_times as $set ) {
-            $set_times[] = 'Set ' . $set['set_number'] . ': ' . $set['start'] . ' - ' . $set['end'];
-        }
-        $this->pdf->MultiCell( 0, 6, implode( ' | ', $set_times ), 0, 'L' );
+        $this->pdf->Cell( 0, 6, 'Set Schedule:', 0, 1 );
+        $this->pdf->Ln( 2 );
 
-        // Venue details
+        // Calculate box width based on number of sets
+        $num_sets = count( $this->contract->calculated->set_times );
+        $page_width = $this->pdf->getPageWidth();
+        $margins = $this->pdf->getMargins();
+        $content_width = $page_width - $margins['left'] - $margins['right'];
+        $box_width = ( $content_width - ( ( $num_sets - 1 ) * 3 ) ) / $num_sets; // 3mm gap between boxes
+        $box_height = 18;
+
+        $this->pdf->SetDrawColor( $this->colors['primary'][0], $this->colors['primary'][1], $this->colors['primary'][2] );
+        $this->pdf->SetFillColor( $this->colors['light'][0], $this->colors['light'][1], $this->colors['light'][2] );
+
+        $x_start = $margins['left'];
+        $y_start = $this->pdf->GetY();
+
+        foreach ( $this->contract->calculated->set_times as $index => $set ) {
+            $x_pos = $x_start + ( $index * ( $box_width + 3 ) );
+
+            // Draw box with border
+            $this->pdf->Rect( $x_pos, $y_start, $box_width, $box_height, 'DF' );
+
+            // Set title
+            $this->pdf->SetXY( $x_pos, $y_start + 2 );
+            $this->pdf->SetFont( 'helvetica', 'B', 10 );
+            $this->pdf->Cell( $box_width, 5, 'Set ' . $set['set_number'], 0, 0, 'C' );
+
+            // Set times
+            $this->pdf->SetXY( $x_pos, $y_start + 8 );
+            $this->pdf->SetFont( 'helvetica', '', 9 );
+            $this->pdf->Cell( $box_width, 5, $set['start'] . ' - ' . $set['end'], 0, 0, 'C' );
+        }
+
+        $this->pdf->SetY( $y_start + $box_height + 5 );
+        $this->pdf->SetDrawColor( $this->colors['border'][0], $this->colors['border'][1], $this->colors['border'][2] );
+
+        // Venue details - check for page break before this section
+        $this->check_page_break( 60 ); // Estimate 60mm for venue section
         $this->pdf->Ln( 3 );
         if ( ! empty( $this->contract->venue_name ) ) {
             $this->add_detail_row( 'Venue', $this->contract->venue_name );
@@ -448,15 +488,30 @@ class SMCB_PDF_Generator {
         if ( ! empty( $this->contract->power_requirements ) ) {
             $this->add_detail_row( 'Power Requirements', $this->contract->power_requirements );
         }
+
+        // Check page break before load-in location to keep it together
+        if ( ! empty( $this->contract->loadin_location ) || ! empty( $this->contract->performance_location ) ) {
+            $loadin_height = 0;
+            if ( ! empty( $this->contract->loadin_location ) ) {
+                $loadin_height += 15 + ( substr_count( $this->contract->loadin_location, "\n" ) * 6 );
+            }
+            if ( ! empty( $this->contract->performance_location ) ) {
+                $loadin_height += 15 + ( substr_count( $this->contract->performance_location, "\n" ) * 6 );
+            }
+            $this->check_page_break( $loadin_height );
+        }
+
         if ( ! empty( $this->contract->loadin_location ) ) {
+            $this->pdf->Ln( 2 );
             $this->pdf->SetFont( 'helvetica', 'B', 11 );
-            $this->pdf->Cell( 50, 6, 'Load-in Location:', 0, 0 );
+            $this->pdf->Cell( 0, 6, 'Load-in Location:', 0, 1 );
             $this->pdf->SetFont( 'helvetica', '', 11 );
             $this->pdf->MultiCell( 0, 6, $this->contract->loadin_location, 0, 'L' );
         }
         if ( ! empty( $this->contract->performance_location ) ) {
+            $this->pdf->Ln( 2 );
             $this->pdf->SetFont( 'helvetica', 'B', 11 );
-            $this->pdf->Cell( 50, 6, 'Performance Location:', 0, 0 );
+            $this->pdf->Cell( 0, 6, 'Performance Location:', 0, 1 );
             $this->pdf->SetFont( 'helvetica', '', 11 );
             $this->pdf->MultiCell( 0, 6, $this->contract->performance_location, 0, 'L' );
         }
@@ -572,77 +627,103 @@ class SMCB_PDF_Generator {
         $this->pdf->MultiCell( 0, 5, 'By signing below, both parties agree to the terms and conditions set forth in this Performance Agreement.', 0, 'L' );
         $this->pdf->Ln( 10 );
 
-        // Two-column layout for signatures
-        $col_width = 85;
+        // Two-column layout for signatures in boxes
+        $page_width = $this->pdf->getPageWidth();
+        $margins = $this->pdf->getMargins();
+        $content_width = $page_width - $margins['left'] - $margins['right'];
+        $box_width = ( $content_width - 10 ) / 2; // 10mm gap between boxes
+        $box_height = 70;
+
         $y_start = $this->pdf->GetY();
+        $left_x = $margins['left'];
+        $right_x = $margins['left'] + $box_width + 10;
 
-        // Client signature (left)
+        $this->pdf->SetDrawColor( $this->colors['border'][0], $this->colors['border'][1], $this->colors['border'][2] );
+
+        // ===== CLIENT SIGNATURE BOX (LEFT) =====
+        $this->pdf->Rect( $left_x, $y_start, $box_width, $box_height, 'D' );
+
+        // Client header
+        $this->pdf->SetXY( $left_x + 3, $y_start + 3 );
         $this->pdf->SetFont( 'helvetica', 'B', 11 );
-        $this->pdf->Cell( $col_width, 6, 'CLIENT', 0, 1 );
+        $this->pdf->Cell( $box_width - 6, 6, 'CLIENT', 0, 1 );
+        $this->pdf->SetX( $left_x + 3 );
         $this->pdf->SetFont( 'helvetica', '', 10 );
-        $this->pdf->Cell( $col_width, 6, $this->contract->client_company_name, 0, 1 );
+        $this->pdf->Cell( $box_width - 6, 5, $this->contract->client_company_name, 0, 1 );
 
+        // Client signature area
         if ( $signed && ! empty( $this->contract->client_signature ) ) {
-            // Draw signature image
+            // Draw client signature image
             $sig_data = $this->contract->client_signature;
             if ( strpos( $sig_data, 'data:image' ) === 0 ) {
                 $sig_data = substr( $sig_data, strpos( $sig_data, ',' ) + 1 );
             }
             $sig_image = base64_decode( $sig_data );
-            $this->pdf->Image( '@' . $sig_image, $this->pdf->GetX(), $this->pdf->GetY(), 60, 20 );
-            $this->pdf->Ln( 25 );
-        } else {
-            $this->pdf->Ln( 25 );
+            $this->pdf->Image( '@' . $sig_image, $left_x + 5, $y_start + 18, 50, 18 );
         }
 
-        $this->pdf->SetDrawColor( $this->colors['border'][0], $this->colors['border'][1], $this->colors['border'][2] );
-        $this->pdf->Line( 20, $this->pdf->GetY(), 100, $this->pdf->GetY() );
-        $this->pdf->Ln( 2 );
-        $this->pdf->Cell( $col_width, 5, 'Signature', 0, 1 );
+        // Signature line
+        $sig_line_y = $y_start + 40;
+        $this->pdf->Line( $left_x + 5, $sig_line_y, $left_x + $box_width - 5, $sig_line_y );
+        $this->pdf->SetXY( $left_x + 3, $sig_line_y + 1 );
+        $this->pdf->SetFont( 'helvetica', '', 8 );
+        $this->pdf->Cell( $box_width - 6, 4, 'Signature', 0, 1 );
 
         if ( $signed && ! empty( $this->contract->client_signed_name ) ) {
-            $this->pdf->Cell( $col_width, 5, 'Signed by: ' . $this->contract->client_signed_name, 0, 1 );
-            $this->pdf->Cell( $col_width, 5, 'Date: ' . smcb_format_date( $this->contract->client_signed_at ), 0, 1 );
+            $this->pdf->SetXY( $left_x + 3, $sig_line_y + 6 );
+            $this->pdf->SetFont( 'helvetica', '', 9 );
+            $this->pdf->Cell( $box_width - 6, 5, 'Signed by: ' . $this->contract->client_signed_name, 0, 1 );
+            $this->pdf->SetX( $left_x + 3 );
+            $this->pdf->Cell( $box_width - 6, 5, 'Date: ' . smcb_format_date( $this->contract->client_signed_at ), 0, 1 );
         } else {
-            $this->pdf->Ln( 10 );
-            $this->pdf->Line( 20, $this->pdf->GetY(), 100, $this->pdf->GetY() );
-            $this->pdf->Ln( 2 );
-            $this->pdf->Cell( $col_width, 5, 'Print Name', 0, 1 );
-            $this->pdf->Ln( 10 );
-            $this->pdf->Line( 20, $this->pdf->GetY(), 100, $this->pdf->GetY() );
-            $this->pdf->Ln( 2 );
-            $this->pdf->Cell( $col_width, 5, 'Date', 0, 1 );
+            // Print name line
+            $name_line_y = $sig_line_y + 12;
+            $this->pdf->Line( $left_x + 5, $name_line_y, $left_x + $box_width - 5, $name_line_y );
+            $this->pdf->SetXY( $left_x + 3, $name_line_y + 1 );
+            $this->pdf->Cell( $box_width - 6, 4, 'Print Name', 0, 1 );
+
+            // Date line
+            $date_line_y = $name_line_y + 12;
+            $this->pdf->Line( $left_x + 5, $date_line_y, $left_x + $box_width - 5, $date_line_y );
+            $this->pdf->SetXY( $left_x + 3, $date_line_y + 1 );
+            $this->pdf->Cell( $box_width - 6, 4, 'Date', 0, 1 );
         }
 
-        // Performer signature (right)
-        $this->pdf->SetXY( 110, $y_start );
+        // ===== PERFORMER SIGNATURE BOX (RIGHT) =====
+        $this->pdf->Rect( $right_x, $y_start, $box_width, $box_height, 'D' );
+
+        // Performer header
+        $this->pdf->SetXY( $right_x + 3, $y_start + 3 );
         $this->pdf->SetFont( 'helvetica', 'B', 11 );
-        $this->pdf->Cell( $col_width, 6, 'PERFORMER', 0, 1 );
-        $this->pdf->SetX( 110 );
+        $this->pdf->Cell( $box_width - 6, 6, 'PERFORMER', 0, 1 );
+        $this->pdf->SetX( $right_x + 3 );
         $this->pdf->SetFont( 'helvetica', '', 10 );
-        $this->pdf->Cell( $col_width, 6, SMCB_COMPANY_NAME, 0, 1 );
+        $this->pdf->Cell( $box_width - 6, 5, SMCB_COMPANY_NAME, 0, 1 );
 
-        $this->pdf->SetX( 110 );
-        $this->pdf->Ln( 25 );
+        // Performer signature image (always shown)
+        $performer_sig_path = SMCB_PLUGIN_DIR . 'assets/images/performer-signature.png';
+        if ( file_exists( $performer_sig_path ) ) {
+            $this->pdf->Image( $performer_sig_path, $right_x + 5, $y_start + 18, 50, 18 );
+        }
 
-        $this->pdf->Line( 110, $this->pdf->GetY(), 190, $this->pdf->GetY() );
-        $this->pdf->SetX( 110 );
-        $this->pdf->Ln( 2 );
-        $this->pdf->Cell( $col_width, 5, 'Signature', 0, 1 );
+        // Signature line
+        $this->pdf->Line( $right_x + 5, $sig_line_y, $right_x + $box_width - 5, $sig_line_y );
+        $this->pdf->SetXY( $right_x + 3, $sig_line_y + 1 );
+        $this->pdf->SetFont( 'helvetica', '', 8 );
+        $this->pdf->Cell( $box_width - 6, 4, 'Signature', 0, 1 );
 
-        $this->pdf->SetX( 110 );
-        $this->pdf->Ln( 10 );
-        $this->pdf->Line( 110, $this->pdf->GetY(), 190, $this->pdf->GetY() );
-        $this->pdf->SetX( 110 );
-        $this->pdf->Ln( 2 );
-        $this->pdf->Cell( $col_width, 5, 'Print Name', 0, 1 );
+        // Performer signed by info (always filled)
+        $this->pdf->SetXY( $right_x + 3, $sig_line_y + 6 );
+        $this->pdf->SetFont( 'helvetica', '', 9 );
+        $this->pdf->Cell( $box_width - 6, 5, 'Signed by: Jay Goodman obo Skinny Moo', 0, 1 );
+        $this->pdf->SetX( $right_x + 3 );
 
-        $this->pdf->SetX( 110 );
-        $this->pdf->Ln( 10 );
-        $this->pdf->Line( 110, $this->pdf->GetY(), 190, $this->pdf->GetY() );
-        $this->pdf->SetX( 110 );
-        $this->pdf->Ln( 2 );
-        $this->pdf->Cell( $col_width, 5, 'Date', 0, 1 );
+        // Use sent_at date for performer signature date, or current date if not sent
+        $performer_date = ! empty( $this->contract->sent_at ) ? smcb_format_date( $this->contract->sent_at ) : date( 'F j, Y' );
+        $this->pdf->Cell( $box_width - 6, 5, 'Date: ' . $performer_date, 0, 1 );
+
+        // Move cursor below both boxes
+        $this->pdf->SetY( $y_start + $box_height + 5 );
     }
 
     /**
@@ -750,6 +831,25 @@ class SMCB_PDF_Generator {
         $this->pdf->Cell( 50, 6, $label . ':', 0, 0 );
         $this->pdf->SetFont( 'helvetica', '', 11 );
         $this->pdf->Cell( 0, 6, $value, 0, 1 );
+    }
+
+    /**
+     * Check if content will fit on current page, add new page if not.
+     *
+     * @param float $height_needed Height in mm needed for the content.
+     * @return bool True if a new page was added.
+     */
+    private function check_page_break( $height_needed ) {
+        $page_height = $this->pdf->getPageHeight();
+        $margins = $this->pdf->getMargins();
+        $current_y = $this->pdf->GetY();
+        $available_height = $page_height - $margins['bottom'] - $current_y;
+
+        if ( $available_height < $height_needed ) {
+            $this->pdf->AddPage();
+            return true;
+        }
+        return false;
     }
 
     /**
