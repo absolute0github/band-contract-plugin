@@ -246,6 +246,145 @@ $production_options = smcb_get_production_options();
                 </div>
             </div>
 
+            <!-- Payment Tracking -->
+            <?php if ( $contract->status === 'signed' ) : ?>
+            <div class="smcb-view-section smcb-payment-tracking">
+                <h2><span class="dashicons dashicons-money-alt"></span> <?php esc_html_e( 'Payment Tracking', 'skinny-moo-contract-builder' ); ?></h2>
+
+                <div class="smcb-payment-grid">
+                    <!-- Deposit Payment -->
+                    <div class="smcb-payment-box <?php echo $contract->deposit_paid ? 'smcb-payment-paid' : 'smcb-payment-pending'; ?>">
+                        <h3>
+                            <?php if ( $contract->deposit_paid ) : ?>
+                                <span class="dashicons dashicons-yes-alt"></span>
+                            <?php else : ?>
+                                <span class="dashicons dashicons-clock"></span>
+                            <?php endif; ?>
+                            <?php esc_html_e( 'Deposit', 'skinny-moo-contract-builder' ); ?>
+                        </h3>
+                        <div class="smcb-payment-amount"><?php echo esc_html( smcb_format_currency( $contract->calculated->deposit_amount ) ); ?></div>
+
+                        <?php if ( $contract->deposit_paid ) : ?>
+                            <div class="smcb-payment-details">
+                                <p><strong><?php esc_html_e( 'Received:', 'skinny-moo-contract-builder' ); ?></strong> <?php echo esc_html( smcb_format_currency( $contract->deposit_amount_received ) ); ?></p>
+                                <p><strong><?php esc_html_e( 'Method:', 'skinny-moo-contract-builder' ); ?></strong> <?php echo esc_html( ucfirst( $contract->deposit_payment_method ) ); ?></p>
+                                <p><strong><?php esc_html_e( 'Date:', 'skinny-moo-contract-builder' ); ?></strong> <?php echo esc_html( date( 'M j, Y', strtotime( $contract->deposit_paid_at ) ) ); ?></p>
+                                <?php if ( ! empty( $contract->deposit_payment_notes ) ) : ?>
+                                    <p><strong><?php esc_html_e( 'Notes:', 'skinny-moo-contract-builder' ); ?></strong> <?php echo esc_html( $contract->deposit_payment_notes ); ?></p>
+                                <?php endif; ?>
+                            </div>
+                        <?php else : ?>
+                            <form class="smcb-payment-form" data-payment-type="deposit" data-contract-id="<?php echo esc_attr( $contract->id ); ?>">
+                                <div class="smcb-payment-form-row">
+                                    <label><?php esc_html_e( 'Payment Method', 'skinny-moo-contract-builder' ); ?></label>
+                                    <select name="payment_method" required>
+                                        <option value=""><?php esc_html_e( 'Select...', 'skinny-moo-contract-builder' ); ?></option>
+                                        <option value="check"><?php esc_html_e( 'Check', 'skinny-moo-contract-builder' ); ?></option>
+                                        <option value="cash"><?php esc_html_e( 'Cash', 'skinny-moo-contract-builder' ); ?></option>
+                                        <option value="card"><?php esc_html_e( 'Credit Card', 'skinny-moo-contract-builder' ); ?></option>
+                                    </select>
+                                </div>
+                                <div class="smcb-payment-form-row">
+                                    <label><?php esc_html_e( 'Amount Received', 'skinny-moo-contract-builder' ); ?></label>
+                                    <input type="number" name="amount" step="0.01" value="<?php echo esc_attr( $contract->calculated->deposit_amount ); ?>" required>
+                                </div>
+                                <div class="smcb-payment-form-row">
+                                    <label><?php esc_html_e( 'Notes (optional)', 'skinny-moo-contract-builder' ); ?></label>
+                                    <input type="text" name="notes" placeholder="<?php esc_attr_e( 'Check #, transaction ID, etc.', 'skinny-moo-contract-builder' ); ?>">
+                                </div>
+                                <div class="smcb-payment-form-row">
+                                    <label>
+                                        <input type="checkbox" name="send_receipt" value="1" checked>
+                                        <?php esc_html_e( 'Send receipt to client', 'skinny-moo-contract-builder' ); ?>
+                                    </label>
+                                </div>
+                                <button type="submit" class="button button-primary"><?php esc_html_e( 'Record Payment', 'skinny-moo-contract-builder' ); ?></button>
+                            </form>
+                        <?php endif; ?>
+                    </div>
+
+                    <!-- Balance Payment -->
+                    <div class="smcb-payment-box <?php echo $contract->balance_paid ? 'smcb-payment-paid' : 'smcb-payment-pending'; ?>">
+                        <h3>
+                            <?php if ( $contract->balance_paid ) : ?>
+                                <span class="dashicons dashicons-yes-alt"></span>
+                            <?php else : ?>
+                                <span class="dashicons dashicons-clock"></span>
+                            <?php endif; ?>
+                            <?php esc_html_e( 'Balance', 'skinny-moo-contract-builder' ); ?>
+                        </h3>
+                        <div class="smcb-payment-amount"><?php echo esc_html( smcb_format_currency( $contract->calculated->balance_due ) ); ?></div>
+
+                        <?php if ( $contract->balance_paid ) : ?>
+                            <div class="smcb-payment-details">
+                                <p><strong><?php esc_html_e( 'Received:', 'skinny-moo-contract-builder' ); ?></strong> <?php echo esc_html( smcb_format_currency( $contract->balance_amount_received ) ); ?></p>
+                                <p><strong><?php esc_html_e( 'Method:', 'skinny-moo-contract-builder' ); ?></strong> <?php echo esc_html( ucfirst( $contract->balance_payment_method ) ); ?></p>
+                                <p><strong><?php esc_html_e( 'Date:', 'skinny-moo-contract-builder' ); ?></strong> <?php echo esc_html( date( 'M j, Y', strtotime( $contract->balance_paid_at ) ) ); ?></p>
+                                <?php if ( ! empty( $contract->balance_payment_notes ) ) : ?>
+                                    <p><strong><?php esc_html_e( 'Notes:', 'skinny-moo-contract-builder' ); ?></strong> <?php echo esc_html( $contract->balance_payment_notes ); ?></p>
+                                <?php endif; ?>
+                            </div>
+                        <?php else : ?>
+                            <form class="smcb-payment-form" data-payment-type="balance" data-contract-id="<?php echo esc_attr( $contract->id ); ?>">
+                                <div class="smcb-payment-form-row">
+                                    <label><?php esc_html_e( 'Payment Method', 'skinny-moo-contract-builder' ); ?></label>
+                                    <select name="payment_method" required>
+                                        <option value=""><?php esc_html_e( 'Select...', 'skinny-moo-contract-builder' ); ?></option>
+                                        <option value="check"><?php esc_html_e( 'Check', 'skinny-moo-contract-builder' ); ?></option>
+                                        <option value="cash"><?php esc_html_e( 'Cash', 'skinny-moo-contract-builder' ); ?></option>
+                                        <option value="card"><?php esc_html_e( 'Credit Card', 'skinny-moo-contract-builder' ); ?></option>
+                                    </select>
+                                </div>
+                                <div class="smcb-payment-form-row">
+                                    <label><?php esc_html_e( 'Amount Received', 'skinny-moo-contract-builder' ); ?></label>
+                                    <input type="number" name="amount" step="0.01" value="<?php echo esc_attr( $contract->calculated->balance_due ); ?>" required>
+                                </div>
+                                <div class="smcb-payment-form-row">
+                                    <label><?php esc_html_e( 'Notes (optional)', 'skinny-moo-contract-builder' ); ?></label>
+                                    <input type="text" name="notes" placeholder="<?php esc_attr_e( 'Check #, transaction ID, etc.', 'skinny-moo-contract-builder' ); ?>">
+                                </div>
+                                <div class="smcb-payment-form-row">
+                                    <label>
+                                        <input type="checkbox" name="send_receipt" value="1" checked>
+                                        <?php esc_html_e( 'Send receipt to client', 'skinny-moo-contract-builder' ); ?>
+                                    </label>
+                                </div>
+                                <button type="submit" class="button button-primary"><?php esc_html_e( 'Record Payment', 'skinny-moo-contract-builder' ); ?></button>
+                            </form>
+                        <?php endif; ?>
+                    </div>
+                </div>
+
+                <!-- Payment Summary -->
+                <div class="smcb-payment-summary">
+                    <?php
+                    $total_received = floatval( $contract->deposit_amount_received ?? 0 ) + floatval( $contract->balance_amount_received ?? 0 );
+                    $total_due = $contract->calculated->total_compensation;
+                    $remaining = $total_due - $total_received;
+                    ?>
+                    <div class="smcb-payment-summary-item">
+                        <span><?php esc_html_e( 'Total Due:', 'skinny-moo-contract-builder' ); ?></span>
+                        <strong><?php echo esc_html( smcb_format_currency( $total_due ) ); ?></strong>
+                    </div>
+                    <div class="smcb-payment-summary-item">
+                        <span><?php esc_html_e( 'Total Received:', 'skinny-moo-contract-builder' ); ?></span>
+                        <strong class="smcb-text-success"><?php echo esc_html( smcb_format_currency( $total_received ) ); ?></strong>
+                    </div>
+                    <?php if ( $remaining > 0 ) : ?>
+                    <div class="smcb-payment-summary-item">
+                        <span><?php esc_html_e( 'Remaining:', 'skinny-moo-contract-builder' ); ?></span>
+                        <strong class="smcb-text-warning"><?php echo esc_html( smcb_format_currency( $remaining ) ); ?></strong>
+                    </div>
+                    <?php elseif ( $contract->deposit_paid && $contract->balance_paid ) : ?>
+                    <div class="smcb-payment-summary-item smcb-paid-full">
+                        <span class="dashicons dashicons-yes-alt"></span>
+                        <strong><?php esc_html_e( 'PAID IN FULL', 'skinny-moo-contract-builder' ); ?></strong>
+                    </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+            <?php endif; ?>
+
             <!-- Signature (if signed) -->
             <?php if ( $contract->status === 'signed' && ! empty( $contract->client_signature ) ) : ?>
                 <div class="smcb-view-section">

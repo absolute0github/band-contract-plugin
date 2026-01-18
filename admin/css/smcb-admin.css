@@ -755,3 +755,147 @@
         grid-column: span 1;
     }
 }
+
+/* Payment Tracking Section */
+.smcb-payment-tracking {
+    background: #fff;
+}
+
+.smcb-payment-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.smcb-payment-box {
+    border: 2px solid var(--smcb-border);
+    border-radius: 8px;
+    padding: 20px;
+    background: var(--smcb-light-bg);
+}
+
+.smcb-payment-box h3 {
+    margin: 0 0 10px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 16px;
+}
+
+.smcb-payment-box h3 .dashicons {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+}
+
+.smcb-payment-pending h3 .dashicons {
+    color: var(--smcb-warning);
+}
+
+.smcb-payment-paid {
+    border-color: var(--smcb-success);
+    background: #f0fff0;
+}
+
+.smcb-payment-paid h3 .dashicons {
+    color: var(--smcb-success);
+}
+
+.smcb-payment-amount {
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--smcb-secondary);
+    margin-bottom: 15px;
+}
+
+.smcb-payment-details p {
+    margin: 5px 0;
+    font-size: 13px;
+}
+
+.smcb-payment-form-row {
+    margin-bottom: 12px;
+}
+
+.smcb-payment-form-row label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 4px;
+    font-size: 13px;
+}
+
+.smcb-payment-form-row input[type="text"],
+.smcb-payment-form-row input[type="number"],
+.smcb-payment-form-row select {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--smcb-border);
+    border-radius: 4px;
+}
+
+.smcb-payment-form-row input[type="checkbox"] {
+    margin-right: 6px;
+}
+
+.smcb-payment-form button {
+    margin-top: 10px;
+}
+
+.smcb-payment-summary {
+    display: flex;
+    gap: 30px;
+    padding: 15px 20px;
+    background: var(--smcb-light-bg);
+    border-radius: 6px;
+    align-items: center;
+}
+
+.smcb-payment-summary-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.smcb-payment-summary-item span {
+    color: #666;
+}
+
+.smcb-payment-summary-item strong {
+    font-size: 18px;
+}
+
+.smcb-text-success {
+    color: var(--smcb-success) !important;
+}
+
+.smcb-text-warning {
+    color: #d63638 !important;
+}
+
+.smcb-paid-full {
+    background: var(--smcb-success);
+    color: #fff;
+    padding: 8px 15px;
+    border-radius: 4px;
+}
+
+.smcb-paid-full .dashicons {
+    color: #fff;
+}
+
+.smcb-paid-full strong {
+    color: #fff;
+}
+
+@media (max-width: 768px) {
+    .smcb-payment-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .smcb-payment-summary {
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+    }
+}

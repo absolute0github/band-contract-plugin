@@ -49,6 +49,7 @@ class SMCB_Admin {
         add_action( 'wp_ajax_smcb_delete_contract', array( $this, 'ajax_delete_contract' ) );
         add_action( 'wp_ajax_smcb_regenerate_token', array( $this, 'ajax_regenerate_token' ) );
         add_action( 'wp_ajax_smcb_generate_pdfs', array( $this, 'ajax_generate_pdfs' ) );
+        add_action( 'wp_ajax_smcb_record_payment', array( $this, 'ajax_record_payment' ) );
     }
 
     /**
@@ -550,6 +551,65 @@ class SMCB_Admin {
         } catch ( Exception $e ) {
             wp_send_json_error( array( 'message' => $e->getMessage() ) );
         }
+    }
+
+    /**
+     * AJAX handler to record a payment.
+     */
+    public function ajax_record_payment() {
+        check_ajax_referer( 'smcb_admin_nonce', 'nonce' );
+
+        if ( ! current_user_can( 'manage_options' ) ) {
+            wp_send_json_error( array( 'message' => __( 'Permission denied.', 'skinny-moo-contract-builder' ) ) );
+        }
+
+        $contract_id = isset( $_POST['contract_id'] ) ? intval( $_POST['contract_id'] ) : 0;
+        $payment_type = isset( $_POST['payment_type'] ) ? sanitize_text_field( wp_unslash( $_POST['payment_type'] ) ) : '';
+        $payment_method = isset( $_POST['payment_method'] ) ? sanitize_text_field( wp_unslash( $_POST['payment_method'] ) ) : '';
+        $amount = isset( $_POST['amount'] ) ? floatval( $_POST['amount'] ) : 0;
+        $notes = isset( $_POST['notes'] ) ? sanitize_text_field( wp_unslash( $_POST['notes'] ) ) : '';
+        $send_receipt = isset( $_POST['send_receipt'] ) ? intval( $_POST['send_receipt'] ) : 0;
+
+        $contract = $this->contract_model->get( $contract_id );
+
+        if ( ! $contract ) {
+            wp_send_json_error( array( 'message' => __( 'Contract not found.', 'skinny-moo-contract-builder' ) ) );
+        }
+
+        // Record the payment
+        $payment_data = array(
+            'method' => $payment_method,
+            'amount' => $amount,
+            'notes'  => $notes,
+        );
+
+        $result = $this->contract_model->record_payment( $contract_id, $payment_type, $payment_data );
+
+        if ( ! $result ) {
+            wp_send_json_error( array( 'message' => __( 'Failed to record payment.', 'skinny-moo-contract-builder' ) ) );
+        }
+
+        // Refresh contract data
+        $contract = $this->contract_model->get( $contract_id );
+
+        // Send receipt if requested
+        $receipt_sent = false;
+        if ( $send_receipt ) {
+            $email = new SMCB_Email( $contract );
+            $receipt_sent = $email->send_payment_receipt( $payment_type, $amount, $payment_method );
+        }
+
+        $message = sprintf(
+            __( '%s payment of %s recorded successfully.', 'skinny-moo-contract-builder' ),
+            ucfirst( $payment_type ),
+            smcb_format_currency( $amount )
+        );
+
+        if ( $send_receipt && $receipt_sent ) {
+            $message .= ' ' . __( 'Receipt sent to client.', 'skinny-moo-contract-builder' );
+        }
+
+        wp_send_json_success( array( 'message' => $message ) );
     }
 
     /**

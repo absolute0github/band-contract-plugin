@@ -27,6 +27,13 @@ class SMCB_Email {
     private $contract;
 
     /**
+     * Current payment data for receipt emails.
+     *
+     * @var array
+     */
+    private $current_payment;
+
+    /**
      * Constructor.
      *
      * @param object $contract Optional. Contract object.
@@ -126,6 +133,70 @@ class SMCB_Email {
         }
 
         return wp_mail( $to, $subject, $message, $headers );
+    }
+
+    /**
+     * Send payment receipt to client.
+     *
+     * @param string $payment_type   Type of payment (deposit or balance).
+     * @param float  $amount         Amount received.
+     * @param string $payment_method Payment method (check, cash, card).
+     * @return bool True on success, false on failure.
+     */
+    public function send_payment_receipt( $payment_type, $amount, $payment_method ) {
+        if ( ! $this->contract ) {
+            return false;
+        }
+
+        $to = $this->get_recipient_email( $this->contract->email );
+        $subject = $this->get_payment_receipt_subject( $payment_type );
+        $message = $this->get_payment_receipt_body( $payment_type, $amount, $payment_method );
+        $headers = $this->get_email_headers();
+
+        // Add reply-to header
+        $headers[] = 'Reply-To: ' . SMCB_COMPANY_NAME . ' <' . SMCB_COMPANY_EMAIL . '>';
+
+        // Add test mode indicator to subject if in test mode
+        if ( $this->is_test_mode() ) {
+            $subject = '[TEST] ' . $subject;
+        }
+
+        return wp_mail( $to, $subject, $message, $headers );
+    }
+
+    /**
+     * Get payment receipt subject.
+     *
+     * @param string $payment_type Type of payment.
+     * @return string Email subject.
+     */
+    private function get_payment_receipt_subject( $payment_type ) {
+        return sprintf(
+            __( 'Payment Receipt - %s Payment for %s', 'skinny-moo-contract-builder' ),
+            ucfirst( $payment_type ),
+            $this->contract->event_name
+        );
+    }
+
+    /**
+     * Get payment receipt body.
+     *
+     * @param string $payment_type   Type of payment.
+     * @param float  $amount         Amount received.
+     * @param string $payment_method Payment method.
+     * @return string HTML email body.
+     */
+    private function get_payment_receipt_body( $payment_type, $amount, $payment_method ) {
+        // Store payment info for the template
+        $this->current_payment = array(
+            'type'   => $payment_type,
+            'amount' => $amount,
+            'method' => $payment_method,
+        );
+
+        ob_start();
+        include SMCB_PLUGIN_DIR . 'templates/email/payment-receipt.php';
+        return ob_get_clean();
     }
 
     /**

@@ -28,9 +28,51 @@ class SMCB_Activator {
         self::create_tables();
         self::set_default_options();
         self::create_upload_directory();
+        self::maybe_upgrade();
 
         // Flush rewrite rules for custom endpoints
         flush_rewrite_rules();
+    }
+
+    /**
+     * Check and run database upgrades if needed.
+     */
+    public static function maybe_upgrade() {
+        $current_version = get_option( 'smcb_db_version', '1.0.0' );
+
+        // Upgrade to 1.0.9 - Add payment tracking fields
+        if ( version_compare( $current_version, '1.0.9', '<' ) ) {
+            self::upgrade_to_1_0_9();
+        }
+    }
+
+    /**
+     * Upgrade database to version 1.0.9.
+     * Adds payment tracking fields to contracts table.
+     */
+    private static function upgrade_to_1_0_9() {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'smcb_contracts';
+
+        // Check if payment columns exist
+        $columns = $wpdb->get_col( "DESCRIBE {$table_name}", 0 );
+
+        if ( ! in_array( 'deposit_paid', $columns, true ) ) {
+            $wpdb->query( "ALTER TABLE {$table_name}
+                ADD COLUMN deposit_payment_method varchar(20) AFTER signed_contract_pdf_path,
+                ADD COLUMN deposit_paid tinyint(1) NOT NULL DEFAULT 0 AFTER deposit_payment_method,
+                ADD COLUMN deposit_paid_at datetime AFTER deposit_paid,
+                ADD COLUMN deposit_amount_received decimal(10,2) DEFAULT 0.00 AFTER deposit_paid_at,
+                ADD COLUMN deposit_payment_notes text AFTER deposit_amount_received,
+                ADD COLUMN balance_payment_method varchar(20) AFTER deposit_payment_notes,
+                ADD COLUMN balance_paid tinyint(1) NOT NULL DEFAULT 0 AFTER balance_payment_method,
+                ADD COLUMN balance_paid_at datetime AFTER balance_paid,
+                ADD COLUMN balance_amount_received decimal(10,2) DEFAULT 0.00 AFTER balance_paid_at,
+                ADD COLUMN balance_payment_notes text AFTER balance_amount_received"
+            );
+        }
+
+        update_option( 'smcb_db_version', '1.0.9' );
     }
 
     /**
@@ -133,6 +175,18 @@ class SMCB_Activator {
             contract_pdf_path varchar(500),
             invoice_pdf_path varchar(500),
             signed_contract_pdf_path varchar(500),
+
+            -- Payment Tracking
+            deposit_payment_method varchar(20),
+            deposit_paid tinyint(1) NOT NULL DEFAULT 0,
+            deposit_paid_at datetime,
+            deposit_amount_received decimal(10,2) DEFAULT 0.00,
+            deposit_payment_notes text,
+            balance_payment_method varchar(20),
+            balance_paid tinyint(1) NOT NULL DEFAULT 0,
+            balance_paid_at datetime,
+            balance_amount_received decimal(10,2) DEFAULT 0.00,
+            balance_payment_notes text,
 
             -- Timestamps
             created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,

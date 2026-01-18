@@ -425,6 +425,60 @@
                 }
             });
         });
+
+        // Payment form handling
+        $('.smcb-payment-form').on('submit', function(e) {
+            e.preventDefault();
+
+            var $form = $(this);
+            var $btn = $form.find('button[type="submit"]');
+            var contractId = $form.data('contract-id');
+            var paymentType = $form.data('payment-type');
+
+            var paymentMethod = $form.find('select[name="payment_method"]').val();
+            var amount = $form.find('input[name="amount"]').val();
+            var notes = $form.find('input[name="notes"]').val();
+            var sendReceipt = $form.find('input[name="send_receipt"]').is(':checked') ? 1 : 0;
+
+            if (!paymentMethod) {
+                alert('Please select a payment method.');
+                return;
+            }
+
+            if (!confirm('Record this ' + paymentType + ' payment of $' + amount + '?')) {
+                return;
+            }
+
+            $btn.prop('disabled', true).text('Recording...');
+
+            $.ajax({
+                url: smcb_admin.ajax_url,
+                type: 'POST',
+                data: {
+                    action: 'smcb_record_payment',
+                    nonce: smcb_admin.nonce,
+                    contract_id: contractId,
+                    payment_type: paymentType,
+                    payment_method: paymentMethod,
+                    amount: amount,
+                    notes: notes,
+                    send_receipt: sendReceipt
+                },
+                success: function(response) {
+                    $btn.prop('disabled', false).text('Record Payment');
+                    if (response.success) {
+                        alert(response.data.message);
+                        location.reload();
+                    } else {
+                        alert(response.data.message || 'Error recording payment');
+                    }
+                },
+                error: function() {
+                    $btn.prop('disabled', false).text('Record Payment');
+                    alert('Error recording payment');
+                }
+            });
+        });
     }
 
     /**

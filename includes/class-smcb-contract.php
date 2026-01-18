@@ -379,6 +379,53 @@ class SMCB_Contract {
     }
 
     /**
+     * Record a payment for a contract.
+     *
+     * @param int    $id           Contract ID.
+     * @param string $payment_type Type of payment ('deposit' or 'balance').
+     * @param array  $payment_data Payment data (method, amount, notes).
+     * @return bool True on success, false on failure.
+     */
+    public function record_payment( $id, $payment_type, $payment_data ) {
+        $valid_types = array( 'deposit', 'balance' );
+        if ( ! in_array( $payment_type, $valid_types, true ) ) {
+            return false;
+        }
+
+        $valid_methods = array( 'check', 'cash', 'card' );
+        $method = isset( $payment_data['method'] ) ? sanitize_text_field( $payment_data['method'] ) : '';
+        if ( ! in_array( $method, $valid_methods, true ) ) {
+            return false;
+        }
+
+        $update_data = array(
+            $payment_type . '_payment_method'   => $method,
+            $payment_type . '_paid'             => 1,
+            $payment_type . '_paid_at'          => current_time( 'mysql' ),
+            $payment_type . '_amount_received'  => floatval( $payment_data['amount'] ?? 0 ),
+            $payment_type . '_payment_notes'    => sanitize_textarea_field( $payment_data['notes'] ?? '' ),
+            'updated_at'                        => current_time( 'mysql' ),
+        );
+
+        $result = $this->wpdb->update(
+            $this->table_name,
+            $update_data,
+            array( 'id' => $id )
+        );
+
+        if ( $result !== false ) {
+            $amount_formatted = smcb_format_currency( $payment_data['amount'] ?? 0 );
+            $this->log_activity(
+                $id,
+                'payment_received',
+                sprintf( '%s payment of %s received via %s', ucfirst( $payment_type ), $amount_formatted, $method )
+            );
+        }
+
+        return $result !== false;
+    }
+
+    /**
      * Mark contract as viewed.
      *
      * @param int    $id         Contract ID.
