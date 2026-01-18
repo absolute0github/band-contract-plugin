@@ -3,7 +3,7 @@
  * Plugin Name: Skinny Moo Contract Builder
  * Plugin URI: https://absolute0.net
  * Description: Create, send, and manage performance agreements and invoices with digital signing capabilities.
- * Version: 1.0.9
+ * Version: 1.0.10
  * Author: Jay Goodman
  * Author URI: https://absolute0.net
  * License: GPL-2.0+
@@ -20,7 +20,7 @@ if ( ! defined( 'WPINC' ) ) {
 /**
  * Plugin version.
  */
-define( 'SMCB_VERSION', '1.0.9' );
+define( 'SMCB_VERSION', '1.0.10' );
 
 /**
  * Plugin directory path.
@@ -108,6 +108,20 @@ function smcb_http_request_timeout( $timeout, $url ) {
     return $timeout;
 }
 add_filter( 'http_request_timeout', 'smcb_http_request_timeout', 10, 2 );
+
+/**
+ * Check for database upgrades on plugin load.
+ */
+function smcb_check_db_upgrade() {
+    $current_version = get_option( 'smcb_db_version', '1.0.0' );
+
+    // If database version is less than current plugin version, run upgrade
+    if ( version_compare( $current_version, SMCB_VERSION, '<' ) ) {
+        require_once SMCB_PLUGIN_DIR . 'includes/class-smcb-activator.php';
+        SMCB_Activator::maybe_upgrade();
+    }
+}
+add_action( 'plugins_loaded', 'smcb_check_db_upgrade' );
 
 /**
  * Activation hook.
