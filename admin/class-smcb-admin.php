@@ -50,6 +50,7 @@ class SMCB_Admin {
         add_action( 'wp_ajax_smcb_regenerate_token', array( $this, 'ajax_regenerate_token' ) );
         add_action( 'wp_ajax_smcb_generate_pdfs', array( $this, 'ajax_generate_pdfs' ) );
         add_action( 'wp_ajax_smcb_record_payment', array( $this, 'ajax_record_payment' ) );
+        add_action( 'wp_ajax_smcb_sync_to_booking_manager', array( $this, 'ajax_sync_to_booking_manager' ) );
     }
 
     /**
@@ -610,6 +611,38 @@ class SMCB_Admin {
         }
 
         wp_send_json_success( array( 'message' => $message ) );
+    }
+
+    /**
+     * AJAX: Sync a signed contract to the booking manager.
+     */
+    public function ajax_sync_to_booking_manager() {
+        check_ajax_referer( 'smcb_admin_nonce', 'nonce' );
+
+        if ( ! current_user_can( 'manage_options' ) ) {
+            wp_send_json_error( array( 'message' => __( 'Permission denied.', 'skinny-moo-contract-builder' ) ) );
+        }
+
+        $contract_id = isset( $_POST['contract_id'] ) ? intval( $_POST['contract_id'] ) : 0;
+        $contract = $this->contract_model->get( $contract_id );
+
+        if ( ! $contract ) {
+            wp_send_json_error( array( 'message' => __( 'Contract not found.', 'skinny-moo-contract-builder' ) ) );
+        }
+
+        if ( $contract->status !== 'signed' ) {
+            wp_send_json_error( array( 'message' => __( 'Only signed contracts can be synced.', 'skinny-moo-contract-builder' ) ) );
+        }
+
+        if ( ! class_exists( 'SMBM_Event' ) ) {
+            wp_send_json_error( array( 'message' => __( 'Booking Manager plugin is not active.', 'skinny-moo-contract-builder' ) ) );
+        }
+
+        do_action( 'smcb_contract_signed', $contract_id );
+
+        wp_send_json_success( array(
+            'message' => __( 'Contract synced to Booking Manager successfully.', 'skinny-moo-contract-builder' ),
+        ) );
     }
 
     /**

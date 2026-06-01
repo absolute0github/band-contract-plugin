@@ -454,6 +454,13 @@ $production_options = smcb_get_production_options();
                             <?php esc_html_e( 'Generate PDFs', 'skinny-moo-contract-builder' ); ?>
                         </button>
 
+                        <?php if ( $contract->status === 'signed' && class_exists( 'SMBM_Event' ) ) : ?>
+                        <button type="button" class="button smcb-sync-booking" data-contract-id="<?php echo esc_attr( $contract->id ); ?>">
+                            <span class="dashicons dashicons-calendar-alt"></span>
+                            <?php esc_html_e( 'Sync to Booking Manager', 'skinny-moo-contract-builder' ); ?>
+                        </button>
+                        <?php endif; ?>
+
                         <a href="<?php echo esc_url( add_query_arg( array( 'page' => 'smcb-add-contract', 'id' => $contract->id ), admin_url( 'admin.php' ) ) ); ?>" class="button">
                             <span class="dashicons dashicons-edit"></span>
                             <?php esc_html_e( 'Edit Contract', 'skinny-moo-contract-builder' ); ?>
