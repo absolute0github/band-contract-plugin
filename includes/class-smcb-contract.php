@@ -375,6 +375,10 @@ class SMCB_Contract {
 
         $this->log_activity( $id, 'signed', "Contract signed by {$signed_name} from IP {$ip_address}" );
 
+        if ( $result !== false ) {
+            do_action( 'smcb_contract_signed', $id );
+        }
+
         return $result !== false;
     }
 

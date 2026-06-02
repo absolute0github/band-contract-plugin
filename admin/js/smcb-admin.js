@@ -426,6 +426,36 @@
             });
         });
 
+        // Sync to Booking Manager
+        $('.smcb-sync-booking').on('click', function() {
+            var $btn = $(this);
+            var contractId = $btn.data('contract-id');
+
+            $btn.prop('disabled', true).html('<span class="dashicons dashicons-update"></span> Syncing...');
+
+            $.ajax({
+                url: smcb_admin.ajax_url,
+                type: 'POST',
+                data: {
+                    action: 'smcb_sync_to_booking_manager',
+                    nonce: smcb_admin.nonce,
+                    contract_id: contractId
+                },
+                success: function(response) {
+                    $btn.prop('disabled', false).html('<span class="dashicons dashicons-calendar-alt"></span> Sync to Booking Manager');
+                    if (response.success) {
+                        alert(response.data.message);
+                    } else {
+                        alert(response.data.message || 'Error syncing to Booking Manager');
+                    }
+                },
+                error: function() {
+                    $btn.prop('disabled', false).html('<span class="dashicons dashicons-calendar-alt"></span> Sync to Booking Manager');
+                    alert('Error syncing to Booking Manager');
+                }
+            });
+        });
+
         // Payment form handling
         $('.smcb-payment-form').on('submit', function(e) {
             e.preventDefault();
