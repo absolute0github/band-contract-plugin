@@ -454,10 +454,17 @@ $production_options = smcb_get_production_options();
                             <?php esc_html_e( 'Generate PDFs', 'skinny-moo-contract-builder' ); ?>
                         </button>
 
-                        <?php if ( $contract->status === 'signed' && class_exists( 'SMBM_Event' ) ) : ?>
-                        <button type="button" class="button smcb-sync-booking" data-contract-id="<?php echo esc_attr( $contract->id ); ?>">
+                        <?php if ( in_array( $contract->status, array( 'draft', 'sent', 'viewed', 'signed' ), true ) && class_exists( 'SMBM_Event' ) ) : ?>
+                        <?php
+                        $has_calendar_entry = ! empty( $calendar_sync_status['event_id'] );
+                        $target_sync_status = 'signed' === $contract->status ? 'confirmed' : 'pending';
+                        $calendar_button_label = $has_calendar_entry
+                            ? __( 'Re-sync Booking Manager', 'skinny-moo-contract-builder' )
+                            : ( 'signed' === $contract->status ? __( 'Sync to Booking Manager', 'skinny-moo-contract-builder' ) : __( 'Add Pending to Booking Manager', 'skinny-moo-contract-builder' ) );
+                        ?>
+                        <button type="button" class="button smcb-sync-booking" data-contract-id="<?php echo esc_attr( $contract->id ); ?>" data-sync-status="<?php echo esc_attr( $target_sync_status ); ?>">
                             <span class="dashicons dashicons-calendar-alt"></span>
-                            <?php esc_html_e( 'Sync to Booking Manager', 'skinny-moo-contract-builder' ); ?>
+                            <?php echo esc_html( $calendar_button_label ); ?>
                         </button>
                         <?php endif; ?>
 
@@ -471,6 +478,58 @@ $production_options = smcb_get_production_options();
                             <?php esc_html_e( 'Regenerate Link', 'skinny-moo-contract-builder' ); ?>
                         </button>
                     </div>
+                </div>
+            </div>
+
+            <!-- Workflow Timeline Box -->
+            <div class="smcb-sidebar-box">
+                <h3><?php esc_html_e( 'Workflow', 'skinny-moo-contract-builder' ); ?></h3>
+                <div class="smcb-sidebar-box-content">
+                    <div class="smcb-workflow-summary">
+                        <div class="smcb-workflow-item">
+                            <span class="smcb-workflow-label"><?php esc_html_e( 'Calendar', 'skinny-moo-contract-builder' ); ?></span>
+                            <strong class="smcb-calendar-sync-<?php echo esc_attr( $calendar_sync_status['state'] ); ?>">
+                                <?php echo esc_html( $calendar_sync_status['label'] ); ?>
+                            </strong>
+                            <?php if ( ! empty( $calendar_sync_status['event_id'] ) ) : ?>
+                                <span><?php printf( esc_html__( 'Event #%d', 'skinny-moo-contract-builder' ), (int) $calendar_sync_status['event_id'] ); ?></span>
+                            <?php endif; ?>
+                        </div>
+                        <div class="smcb-workflow-item">
+                            <span class="smcb-workflow-label"><?php esc_html_e( 'Created', 'skinny-moo-contract-builder' ); ?></span>
+                            <strong><?php echo esc_html( date( 'M j, Y g:i A', strtotime( $contract->created_at ) ) ); ?></strong>
+                        </div>
+                        <?php if ( ! empty( $contract->sent_at ) ) : ?>
+                            <div class="smcb-workflow-item">
+                                <span class="smcb-workflow-label"><?php esc_html_e( 'Sent', 'skinny-moo-contract-builder' ); ?></span>
+                                <strong><?php echo esc_html( date( 'M j, Y g:i A', strtotime( $contract->sent_at ) ) ); ?></strong>
+                            </div>
+                        <?php endif; ?>
+                        <?php if ( ! empty( $contract->client_signed_at ) ) : ?>
+                            <div class="smcb-workflow-item">
+                                <span class="smcb-workflow-label"><?php esc_html_e( 'Signed', 'skinny-moo-contract-builder' ); ?></span>
+                                <strong><?php echo esc_html( date( 'M j, Y g:i A', strtotime( $contract->client_signed_at ) ) ); ?></strong>
+                            </div>
+                        <?php endif; ?>
+                        <?php if ( ! empty( $contract->deposit_paid_at ) ) : ?>
+                            <div class="smcb-workflow-item">
+                                <span class="smcb-workflow-label"><?php esc_html_e( 'Deposit', 'skinny-moo-contract-builder' ); ?></span>
+                                <strong><?php echo esc_html( date( 'M j, Y g:i A', strtotime( $contract->deposit_paid_at ) ) ); ?></strong>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+
+                    <?php if ( ! empty( $activity_log ) ) : ?>
+                        <ol class="smcb-workflow-activity">
+                            <?php foreach ( array_slice( $activity_log, 0, 6 ) as $activity ) : ?>
+                                <li>
+                                    <span><?php echo esc_html( date( 'M j g:i A', strtotime( $activity->created_at ) ) ); ?></span>
+                                    <strong><?php echo esc_html( ucwords( str_replace( '_', ' ', $activity->action ) ) ); ?></strong>
+                                    <em><?php echo esc_html( $activity->description ); ?></em>
+                                </li>
+                            <?php endforeach; ?>
+                        </ol>
+                    <?php endif; ?>
                 </div>
             </div>
 

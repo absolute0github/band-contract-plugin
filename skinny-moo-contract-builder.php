@@ -3,7 +3,7 @@
  * Plugin Name: Skinny Moo Contract Builder
  * Plugin URI: https://absolute0.net
  * Description: Create, send, and manage performance agreements and invoices with digital signing capabilities.
- * Version: 1.0.10
+ * Version: 1.0.11
  * Author: Jay Goodman
  * Author URI: https://absolute0.net
  * License: GPL-2.0+
@@ -20,7 +20,7 @@ if ( ! defined( 'WPINC' ) ) {
 /**
  * Plugin version.
  */
-define( 'SMCB_VERSION', '1.0.10' );
+define( 'SMCB_VERSION', '1.0.11' );
 
 /**
  * Plugin directory path.
@@ -176,6 +176,20 @@ function smcb_init_admin() {
 add_action( 'init', 'smcb_init_admin' );
 
 /**
+ * Archive contracts after their performance date passes.
+ */
+function smcb_archive_past_contracts() {
+    if ( ! class_exists( 'SMCB_Contract' ) ) {
+        return;
+    }
+
+    $contract_model = new SMCB_Contract();
+    $contract_model->archive_past_contracts();
+}
+add_action( 'smcb_daily_cleanup', 'smcb_archive_past_contracts' );
+add_action( 'admin_init', 'smcb_archive_past_contracts' );
+
+/**
  * Initialize public functionality.
  */
 function smcb_init_public() {
@@ -226,6 +240,7 @@ function smcb_get_contract_statuses() {
         'sent'      => __( 'Sent', 'skinny-moo-contract-builder' ),
         'viewed'    => __( 'Viewed', 'skinny-moo-contract-builder' ),
         'signed'    => __( 'Signed', 'skinny-moo-contract-builder' ),
+        'archived'  => __( 'Archived', 'skinny-moo-contract-builder' ),
         'cancelled' => __( 'Cancelled', 'skinny-moo-contract-builder' ),
     );
 }

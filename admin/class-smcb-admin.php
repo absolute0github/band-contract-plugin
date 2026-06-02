@@ -177,6 +177,10 @@ class SMCB_Admin {
                 global $wpdb;
                 error_log( 'SMCB Contract Update Error: ' . $wpdb->last_error );
             }
+
+            if ( $result ) {
+                $this->sync_existing_booking_manager_event( $contract_id );
+            }
         } else {
             // Create new contract
             $contract_id = $this->contract_model->create( $data );
@@ -199,6 +203,7 @@ class SMCB_Admin {
             $email = new SMCB_Email( $contract );
             if ( $email->send_contract() ) {
                 $message = 'sent';
+                $this->contract_model->record_activity( $contract_id, 'sent', 'Contract prepared and sent to client' );
             } else {
                 $message = 'send_failed';
             }
@@ -434,20 +439,23 @@ class SMCB_Admin {
         }
 
         $placeholders = implode( ', ', array_fill( 0, count( $contract_ids ), '%d' ) );
-        $query = "SELECT id, contract_id FROM {$events_table} WHERE contract_id IN ({$placeholders}) ORDER BY id ASC";
+        $query = "SELECT id, contract_id, event_type, status FROM {$events_table} WHERE contract_id IN ({$placeholders}) ORDER BY id ASC";
 
         // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
         $events = $wpdb->get_results( $wpdb->prepare( $query, $contract_ids ) );
 
         foreach ( $events as $event ) {
             $contract_id = (int) $event->contract_id;
-            if ( ! isset( $statuses[ $contract_id ] ) || 'synced' === $statuses[ $contract_id ]['state'] ) {
+            if ( ! isset( $statuses[ $contract_id ] ) || in_array( $statuses[ $contract_id ]['state'], array( 'pending', 'confirmed' ), true ) ) {
                 continue;
             }
 
+            $state = 'pending' === $event->event_type || 'tentative' === $event->status ? 'pending' : 'confirmed';
             $statuses[ $contract_id ] = array(
-                'state'    => 'synced',
-                'label'    => __( 'Synced', 'skinny-moo-contract-builder' ),
+                'state'    => $state,
+                'label'    => 'pending' === $state
+                    ? __( 'Pending on calendar', 'skinny-moo-contract-builder' )
+                    : __( 'Confirmed on calendar', 'skinny-moo-contract-builder' ),
                 'event_id' => (int) $event->id,
             );
         }
@@ -462,7 +470,7 @@ class SMCB_Admin {
                 'state'    => 'not-synced',
                 'label'    => 'signed' === $contract->status
                     ? __( 'Not synced', 'skinny-moo-contract-builder' )
-                    : __( 'Requires signed contract', 'skinny-moo-contract-builder' ),
+                    : __( 'Not on calendar', 'skinny-moo-contract-builder' ),
                 'event_id' => 0,
             );
         }
@@ -511,6 +519,12 @@ class SMCB_Admin {
         $activity_log = $this->contract_model->get_activity_log( $contract_id );
         $token_manager = new SMCB_Token_Manager();
         $contract_url = $token_manager->get_contract_url( $contract->access_token );
+        $calendar_sync_statuses = $this->get_calendar_sync_statuses( array( $contract ) );
+        $calendar_sync_status = $calendar_sync_statuses[ $contract_id ] ?? array(
+            'state'    => 'unavailable',
+            'label'    => __( 'Unavailable', 'skinny-moo-contract-builder' ),
+            'event_id' => 0,
+        );
 
         include SMCB_PLUGIN_DIR . 'admin/partials/contract-view.php';
     }
@@ -543,6 +557,7 @@ class SMCB_Admin {
         // Send email
         $email = new SMCB_Email( $contract );
         if ( $email->send_contract() ) {
+            $this->contract_model->record_activity( $contract_id, 'sent', 'Contract prepared and sent to client' );
             wp_send_json_success( array(
                 'message' => __( 'Contract sent successfully.', 'skinny-moo-contract-builder' ),
                 'status'  => 'sent',
@@ -616,6 +631,7 @@ class SMCB_Admin {
         try {
             $pdf_generator = new SMCB_PDF_Generator( $contract );
             $paths = $pdf_generator->generate_all();
+            $this->contract_model->record_activity( $contract_id, 'documents_generated', 'Contract documents generated' );
 
             $urls = array();
             foreach ( $paths as $type => $path ) {
@@ -693,7 +709,7 @@ class SMCB_Admin {
     }
 
     /**
-     * AJAX: Sync a signed contract to the booking manager.
+     * AJAX: Sync a contract to the booking manager calendar.
      */
     public function ajax_sync_to_booking_manager() {
         check_ajax_referer( 'smcb_admin_nonce', 'nonce' );
@@ -709,27 +725,99 @@ class SMCB_Admin {
             wp_send_json_error( array( 'message' => __( 'Contract not found.', 'skinny-moo-contract-builder' ) ) );
         }
 
-        if ( $contract->status !== 'signed' ) {
-            wp_send_json_error( array( 'message' => __( 'Only signed contracts can be synced.', 'skinny-moo-contract-builder' ) ) );
-        }
-
         if ( ! class_exists( 'SMBM_Event' ) ) {
             wp_send_json_error( array( 'message' => __( 'Booking Manager plugin is not active.', 'skinny-moo-contract-builder' ) ) );
         }
 
-        do_action( 'smcb_contract_signed', $contract_id );
+        $requested_status = isset( $_POST['sync_status'] ) ? sanitize_text_field( wp_unslash( $_POST['sync_status'] ) ) : '';
+        $sync_status = 'signed' === $contract->status ? 'confirmed' : 'pending';
+        if ( in_array( $requested_status, array( 'pending', 'confirmed' ), true ) ) {
+            $sync_status = 'signed' === $contract->status ? 'confirmed' : $requested_status;
+        }
 
-        $sync_statuses = $this->get_calendar_sync_statuses( array( $contract ) );
-        $sync_status = $sync_statuses[ $contract_id ] ?? null;
+        $sync_result = $this->sync_contract_to_booking_manager( $contract_id, $sync_status, true );
 
-        if ( empty( $sync_status ) || 'synced' !== $sync_status['state'] ) {
+        if ( ! $sync_result ) {
             wp_send_json_error( array( 'message' => __( 'Calendar sync did not create or update a Booking Manager event.', 'skinny-moo-contract-builder' ) ) );
         }
 
+        $message = 'pending' === $sync_status
+            ? __( 'Contract added to Booking Manager as a pending calendar entry.', 'skinny-moo-contract-builder' )
+            : __( 'Contract synced to Booking Manager as a confirmed calendar entry.', 'skinny-moo-contract-builder' );
+
         wp_send_json_success( array(
-            'message'  => __( 'Contract synced to Booking Manager successfully.', 'skinny-moo-contract-builder' ),
-            'event_id' => $sync_status['event_id'],
+            'message'     => $message,
+            'event_id'    => $sync_result['event_id'],
+            'sync_status' => $sync_status,
         ) );
+    }
+
+    /**
+     * Sync an existing calendar entry after contract changes.
+     *
+     * @param int $contract_id Contract ID.
+     */
+    private function sync_existing_booking_manager_event( $contract_id ) {
+        if ( ! class_exists( 'SMBM_Event' ) ) {
+            return;
+        }
+
+        $contract = $this->contract_model->get( $contract_id );
+        if ( ! $contract ) {
+            return;
+        }
+
+        $sync_statuses = $this->get_calendar_sync_statuses( array( $contract ) );
+        $sync_status = $sync_statuses[ $contract_id ] ?? null;
+        if ( empty( $sync_status['event_id'] ) ) {
+            return;
+        }
+
+        $target_status = 'signed' === $contract->status ? 'confirmed' : 'pending';
+        $this->sync_contract_to_booking_manager( $contract_id, $target_status, true, 'Calendar entry updated after contract changes' );
+    }
+
+    /**
+     * Sync a contract to Booking Manager.
+     *
+     * @param int    $contract_id   Contract ID.
+     * @param string $sync_status   Calendar state: pending or confirmed.
+     * @param bool   $log_activity  Whether to log activity.
+     * @param string $description   Optional activity description.
+     * @return array|false Sync result.
+     */
+    private function sync_contract_to_booking_manager( $contract_id, $sync_status = 'confirmed', $log_activity = false, $description = '' ) {
+        $contract = $this->contract_model->get( $contract_id );
+        if ( ! $contract || ! class_exists( 'SMBM_Event' ) ) {
+            return false;
+        }
+
+        $sync_status = 'pending' === $sync_status ? 'pending' : 'confirmed';
+
+        do_action( 'smcb_contract_calendar_sync', $contract_id, $sync_status );
+
+        $sync_statuses = $this->get_calendar_sync_statuses( array( $contract ) );
+        $result_status = $sync_statuses[ $contract_id ] ?? null;
+
+        if ( empty( $result_status['event_id'] ) ) {
+            return false;
+        }
+
+        if ( $log_activity ) {
+            if ( empty( $description ) ) {
+                $description = sprintf(
+                    'Calendar entry #%d synced as %s',
+                    (int) $result_status['event_id'],
+                    $sync_status
+                );
+            }
+            $this->contract_model->record_activity( $contract_id, 'calendar_synced', $description );
+        }
+
+        return array(
+            'event_id' => (int) $result_status['event_id'],
+            'state'    => $result_status['state'],
+        );
     }
 
     /**

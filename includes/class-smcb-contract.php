@@ -377,6 +377,14 @@ class SMCB_Contract {
 
         if ( $result !== false ) {
             do_action( 'smcb_contract_signed', $id );
+            $calendar_event_id = $this->get_booking_manager_event_id( $id );
+            if ( $calendar_event_id ) {
+                $this->log_activity(
+                    $id,
+                    'calendar_synced',
+                    sprintf( 'Calendar entry #%d synced as confirmed after signature', $calendar_event_id )
+                );
+            }
         }
 
         return $result !== false;
@@ -525,6 +533,7 @@ class SMCB_Contract {
             'sent'               => 0,
             'viewed'             => 0,
             'signed'             => 0,
+            'archived'           => 0,
             'cancelled'          => 0,
             'signed_this_month'  => 0,
             'upcoming_events'    => 0,
@@ -573,6 +582,37 @@ class SMCB_Contract {
     }
 
     /**
+     * Archive contracts whose performance date has passed.
+     *
+     * @return int Number of archived contracts.
+     */
+    public function archive_past_contracts() {
+        $today = current_time( 'Y-m-d' );
+        $contract_ids = $this->wpdb->get_col(
+            $this->wpdb->prepare(
+                "SELECT id FROM {$this->table_name}
+                WHERE performance_date < %s
+                AND status NOT IN ('archived', 'cancelled')",
+                $today
+            )
+        );
+
+        if ( empty( $contract_ids ) ) {
+            return 0;
+        }
+
+        $archived = 0;
+        foreach ( $contract_ids as $contract_id ) {
+            if ( $this->update_status( (int) $contract_id, 'archived' ) ) {
+                $this->record_activity( (int) $contract_id, 'archived', 'Contract automatically archived after the performance date passed' );
+                $archived++;
+            }
+        }
+
+        return $archived;
+    }
+
+    /**
      * Get activity log for a contract.
      *
      * @param int $contract_id Contract ID.
@@ -585,6 +625,39 @@ class SMCB_Contract {
                 "SELECT * FROM {$this->activity_table} WHERE contract_id = %d ORDER BY created_at DESC LIMIT %d",
                 $contract_id,
                 $limit
+            )
+        );
+    }
+
+    /**
+     * Record an activity log entry.
+     *
+     * @param int    $contract_id Contract ID.
+     * @param string $action      Action type.
+     * @param string $description Action description.
+     */
+    public function record_activity( $contract_id, $action, $description = '' ) {
+        $this->log_activity( $contract_id, $action, $description );
+    }
+
+    /**
+     * Get the linked Booking Manager event ID for a contract.
+     *
+     * @param int $contract_id Contract ID.
+     * @return int Event ID or 0.
+     */
+    private function get_booking_manager_event_id( $contract_id ) {
+        $events_table = $this->wpdb->prefix . 'smbm_events';
+
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+        if ( $this->wpdb->get_var( "SHOW TABLES LIKE '{$events_table}'" ) !== $events_table ) {
+            return 0;
+        }
+
+        return (int) $this->wpdb->get_var(
+            $this->wpdb->prepare(
+                "SELECT id FROM {$events_table} WHERE contract_id = %d ORDER BY id ASC LIMIT 1",
+                $contract_id
             )
         );
     }

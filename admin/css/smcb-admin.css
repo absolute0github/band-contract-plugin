@@ -140,6 +140,7 @@
 .smcb-status-sent { background: #e5f5fc; color: #0073aa; }
 .smcb-status-viewed { background: #fff8e5; color: #996800; }
 .smcb-status-signed { background: #ecf7ed; color: #2e7d32; }
+.smcb-status-archived { background: #eef0f2; color: #50575e; }
 .smcb-status-cancelled { background: #fbe9e7; color: #c62828; }
 
 /* Calendar Sync */
@@ -154,7 +155,8 @@
     font-weight: 600;
 }
 
-.smcb-calendar-sync-synced { color: var(--smcb-success); }
+.smcb-calendar-sync-confirmed { color: var(--smcb-success); }
+.smcb-calendar-sync-pending { color: #996800; }
 .smcb-calendar-sync-not-synced { color: #996800; }
 .smcb-calendar-sync-unavailable { color: #666; }
 
@@ -662,6 +664,10 @@
 .smcb-activity-viewed { background: #fff8e1; color: #f57c00; }
 .smcb-activity-signed { background: #e8f5e9; color: #2e7d32; }
 .smcb-activity-status_changed { background: #f3e5f5; color: #7b1fa2; }
+.smcb-activity-documents_generated { background: #e3f2fd; color: #1565c0; }
+.smcb-activity-calendar_synced { background: #fff8e1; color: #996800; }
+.smcb-activity-payment_received { background: #e8f5e9; color: #2e7d32; }
+.smcb-activity-archived { background: #eef0f2; color: #50575e; }
 
 /* Action Buttons */
 .smcb-action-buttons {
@@ -677,6 +683,63 @@
     gap: 8px;
     width: 100%;
     padding: 8px 15px;
+}
+
+/* Workflow Sidebar */
+.smcb-workflow-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.smcb-workflow-item {
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.smcb-workflow-item:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+}
+
+.smcb-workflow-label {
+    display: block;
+    margin-bottom: 2px;
+    color: #666;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.smcb-workflow-item strong,
+.smcb-workflow-item span:not(.smcb-workflow-label) {
+    display: block;
+    font-size: 12px;
+}
+
+.smcb-workflow-activity {
+    margin: 14px 0 0;
+    padding-left: 18px;
+}
+
+.smcb-workflow-activity li {
+    margin-bottom: 10px;
+}
+
+.smcb-workflow-activity span,
+.smcb-workflow-activity em {
+    display: block;
+    color: #666;
+    font-size: 11px;
+}
+
+.smcb-workflow-activity strong {
+    display: block;
+    font-size: 12px;
+}
+
+.smcb-workflow-activity em {
+    font-style: normal;
 }
 
 /* Contract Link */

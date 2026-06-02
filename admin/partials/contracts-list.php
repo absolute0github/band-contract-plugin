@@ -150,15 +150,22 @@ if ( ! defined( 'WPINC' ) ) {
                                     ?>
                                 </span>
                             <?php endif; ?>
-                            <?php if ( $contract->status === 'signed' && class_exists( 'SMBM_Event' ) ) : ?>
+                            <?php if ( in_array( $contract->status, array( 'draft', 'sent', 'viewed', 'signed' ), true ) && class_exists( 'SMBM_Event' ) ) : ?>
+                                <?php
+                                $has_calendar_entry = ! empty( $sync_status['event_id'] );
+                                $button_label = $has_calendar_entry
+                                    ? __( 'Re-sync', 'skinny-moo-contract-builder' )
+                                    : ( 'signed' === $contract->status ? __( 'Sync', 'skinny-moo-contract-builder' ) : __( 'Add Pending', 'skinny-moo-contract-builder' ) );
+                                $target_sync_status = 'signed' === $contract->status ? 'confirmed' : 'pending';
+                                ?>
                                 <button
                                     type="button"
                                     class="button button-small smcb-sync-booking"
                                     data-contract-id="<?php echo esc_attr( $contract->id ); ?>"
-                                    data-sync-label="<?php echo esc_attr( 'synced' === $sync_status['state'] ? __( 'Re-sync', 'skinny-moo-contract-builder' ) : __( 'Sync', 'skinny-moo-contract-builder' ) ); ?>"
+                                    data-sync-status="<?php echo esc_attr( $target_sync_status ); ?>"
                                 >
                                     <span class="dashicons dashicons-calendar-alt"></span>
-                                    <?php echo 'synced' === $sync_status['state'] ? esc_html__( 'Re-sync', 'skinny-moo-contract-builder' ) : esc_html__( 'Sync', 'skinny-moo-contract-builder' ); ?>
+                                    <?php echo esc_html( $button_label ); ?>
                                 </button>
                             <?php endif; ?>
                         </td>

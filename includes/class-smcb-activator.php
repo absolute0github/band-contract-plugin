@@ -29,6 +29,7 @@ class SMCB_Activator {
         self::set_default_options();
         self::create_upload_directory();
         self::maybe_upgrade();
+        self::schedule_daily_cleanup();
 
         // Flush rewrite rules for custom endpoints
         flush_rewrite_rules();
@@ -44,6 +45,9 @@ class SMCB_Activator {
         if ( version_compare( $current_version, '1.0.9', '<' ) ) {
             self::upgrade_to_1_0_9();
         }
+
+        self::schedule_daily_cleanup();
+        update_option( 'smcb_db_version', SMCB_VERSION );
     }
 
     /**
@@ -73,6 +77,15 @@ class SMCB_Activator {
         }
 
         update_option( 'smcb_db_version', '1.0.9' );
+    }
+
+    /**
+     * Schedule daily cleanup tasks.
+     */
+    private static function schedule_daily_cleanup() {
+        if ( ! wp_next_scheduled( 'smcb_daily_cleanup' ) ) {
+            wp_schedule_event( time(), 'daily', 'smcb_daily_cleanup' );
+        }
     }
 
     /**
