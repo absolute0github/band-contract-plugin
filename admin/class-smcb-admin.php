@@ -384,11 +384,90 @@ class SMCB_Admin {
         $contracts = $result['items'];
         $total = $result['total'];
         $total_pages = ceil( $total / $args['per_page'] );
+        $calendar_sync_statuses = $this->get_calendar_sync_statuses( $contracts );
 
         // Get statistics
         $stats = $this->contract_model->get_statistics();
 
         include SMCB_PLUGIN_DIR . 'admin/partials/contracts-list.php';
+    }
+
+    /**
+     * Get Booking Manager calendar sync status for a list of contracts.
+     *
+     * @param array $contracts Contract rows.
+     * @return array Calendar sync status keyed by contract ID.
+     */
+    private function get_calendar_sync_statuses( $contracts ) {
+        $statuses = array();
+
+        foreach ( $contracts as $contract ) {
+            $statuses[ (int) $contract->id ] = array(
+                'state'    => 'unavailable',
+                'label'    => __( 'Unavailable', 'skinny-moo-contract-builder' ),
+                'event_id' => 0,
+            );
+        }
+
+        if ( empty( $contracts ) || ! class_exists( 'SMBM_Event' ) ) {
+            return $statuses;
+        }
+
+        global $wpdb;
+
+        $events_table = $wpdb->prefix . 'smbm_events';
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+        if ( $wpdb->get_var( "SHOW TABLES LIKE '{$events_table}'" ) !== $events_table ) {
+            return $statuses;
+        }
+
+        $contract_ids = array_map(
+            static function ( $contract ) {
+                return (int) $contract->id;
+            },
+            $contracts
+        );
+
+        $contract_ids = array_values( array_filter( array_unique( $contract_ids ) ) );
+        if ( empty( $contract_ids ) ) {
+            return $statuses;
+        }
+
+        $placeholders = implode( ', ', array_fill( 0, count( $contract_ids ), '%d' ) );
+        $query = "SELECT id, contract_id FROM {$events_table} WHERE contract_id IN ({$placeholders}) ORDER BY id ASC";
+
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+        $events = $wpdb->get_results( $wpdb->prepare( $query, $contract_ids ) );
+
+        foreach ( $events as $event ) {
+            $contract_id = (int) $event->contract_id;
+            if ( ! isset( $statuses[ $contract_id ] ) || 'synced' === $statuses[ $contract_id ]['state'] ) {
+                continue;
+            }
+
+            $statuses[ $contract_id ] = array(
+                'state'    => 'synced',
+                'label'    => __( 'Synced', 'skinny-moo-contract-builder' ),
+                'event_id' => (int) $event->id,
+            );
+        }
+
+        foreach ( $contracts as $contract ) {
+            $contract_id = (int) $contract->id;
+            if ( 'unavailable' !== $statuses[ $contract_id ]['state'] ) {
+                continue;
+            }
+
+            $statuses[ $contract_id ] = array(
+                'state'    => 'not-synced',
+                'label'    => 'signed' === $contract->status
+                    ? __( 'Not synced', 'skinny-moo-contract-builder' )
+                    : __( 'Requires signed contract', 'skinny-moo-contract-builder' ),
+                'event_id' => 0,
+            );
+        }
+
+        return $statuses;
     }
 
     /**
@@ -640,8 +719,16 @@ class SMCB_Admin {
 
         do_action( 'smcb_contract_signed', $contract_id );
 
+        $sync_statuses = $this->get_calendar_sync_statuses( array( $contract ) );
+        $sync_status = $sync_statuses[ $contract_id ] ?? null;
+
+        if ( empty( $sync_status ) || 'synced' !== $sync_status['state'] ) {
+            wp_send_json_error( array( 'message' => __( 'Calendar sync did not create or update a Booking Manager event.', 'skinny-moo-contract-builder' ) ) );
+        }
+
         wp_send_json_success( array(
-            'message' => __( 'Contract synced to Booking Manager successfully.', 'skinny-moo-contract-builder' ),
+            'message'  => __( 'Contract synced to Booking Manager successfully.', 'skinny-moo-contract-builder' ),
+            'event_id' => $sync_status['event_id'],
         ) );
     }
 

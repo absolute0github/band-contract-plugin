@@ -430,6 +430,12 @@
         $('.smcb-sync-booking').on('click', function() {
             var $btn = $(this);
             var contractId = $btn.data('contract-id');
+            var idleHtml = $btn.data('idle-html');
+
+            if (!idleHtml) {
+                idleHtml = $btn.html();
+                $btn.data('idle-html', idleHtml);
+            }
 
             $btn.prop('disabled', true).html('<span class="dashicons dashicons-update"></span> Syncing...');
 
@@ -442,15 +448,16 @@
                     contract_id: contractId
                 },
                 success: function(response) {
-                    $btn.prop('disabled', false).html('<span class="dashicons dashicons-calendar-alt"></span> Sync to Booking Manager');
+                    $btn.prop('disabled', false).html(idleHtml);
                     if (response.success) {
                         alert(response.data.message);
+                        location.reload();
                     } else {
                         alert(response.data.message || 'Error syncing to Booking Manager');
                     }
                 },
                 error: function() {
-                    $btn.prop('disabled', false).html('<span class="dashicons dashicons-calendar-alt"></span> Sync to Booking Manager');
+                    $btn.prop('disabled', false).html(idleHtml);
                     alert('Error syncing to Booking Manager');
                 }
             });

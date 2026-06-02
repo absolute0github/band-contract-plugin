@@ -107,6 +107,7 @@
 .smcb-contracts-table .column-date { width: 130px; }
 .smcb-contracts-table .column-amount { width: 100px; }
 .smcb-contracts-table .column-status { width: 90px; }
+.smcb-contracts-table .column-calendar-sync { width: 150px; }
 .smcb-contracts-table .column-actions { width: 120px; }
 
 .smcb-contact,
@@ -140,6 +141,38 @@
 .smcb-status-viewed { background: #fff8e5; color: #996800; }
 .smcb-status-signed { background: #ecf7ed; color: #2e7d32; }
 .smcb-status-cancelled { background: #fbe9e7; color: #c62828; }
+
+/* Calendar Sync */
+.smcb-calendar-sync-status,
+.smcb-calendar-sync-event {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 12px;
+}
+
+.smcb-calendar-sync-status {
+    font-weight: 600;
+}
+
+.smcb-calendar-sync-synced { color: var(--smcb-success); }
+.smcb-calendar-sync-not-synced { color: #996800; }
+.smcb-calendar-sync-unavailable { color: #666; }
+
+.smcb-calendar-sync-event {
+    color: #666;
+}
+
+.smcb-sync-booking {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 3px;
+}
+
+.smcb-sync-booking .dashicons {
+    font-size: 15px;
+    width: 15px;
+    height: 15px;
+}
 
 /* Row Actions */
 .smcb-row-actions {

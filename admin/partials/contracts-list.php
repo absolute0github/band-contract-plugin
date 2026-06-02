@@ -85,13 +85,14 @@ if ( ! defined( 'WPINC' ) ) {
                 <th scope="col" class="column-date"><?php esc_html_e( 'Date', 'skinny-moo-contract-builder' ); ?></th>
                 <th scope="col" class="column-amount"><?php esc_html_e( 'Amount', 'skinny-moo-contract-builder' ); ?></th>
                 <th scope="col" class="column-status"><?php esc_html_e( 'Status', 'skinny-moo-contract-builder' ); ?></th>
+                <th scope="col" class="column-calendar-sync"><?php esc_html_e( 'Calendar Sync', 'skinny-moo-contract-builder' ); ?></th>
                 <th scope="col" class="column-actions"><?php esc_html_e( 'Actions', 'skinny-moo-contract-builder' ); ?></th>
             </tr>
         </thead>
         <tbody>
             <?php if ( empty( $contracts ) ) : ?>
                 <tr>
-                    <td colspan="7" class="smcb-no-contracts">
+                    <td colspan="8" class="smcb-no-contracts">
                         <?php esc_html_e( 'No contracts found.', 'skinny-moo-contract-builder' ); ?>
                         <a href="<?php echo esc_url( admin_url( 'admin.php?page=smcb-add-contract' ) ); ?>">
                             <?php esc_html_e( 'Create your first contract', 'skinny-moo-contract-builder' ); ?>
@@ -126,6 +127,40 @@ if ( ! defined( 'WPINC' ) ) {
                             <span class="smcb-status smcb-status-<?php echo esc_attr( $contract->status ); ?>">
                                 <?php echo esc_html( smcb_get_contract_statuses()[ $contract->status ] ?? $contract->status ); ?>
                             </span>
+                        </td>
+                        <td class="column-calendar-sync">
+                            <?php
+                            $sync_status = $calendar_sync_statuses[ (int) $contract->id ] ?? array(
+                                'state'    => 'unavailable',
+                                'label'    => __( 'Unavailable', 'skinny-moo-contract-builder' ),
+                                'event_id' => 0,
+                            );
+                            ?>
+                            <span class="smcb-calendar-sync-status smcb-calendar-sync-<?php echo esc_attr( $sync_status['state'] ); ?>">
+                                <?php echo esc_html( $sync_status['label'] ); ?>
+                            </span>
+                            <?php if ( ! empty( $sync_status['event_id'] ) ) : ?>
+                                <span class="smcb-calendar-sync-event">
+                                    <?php
+                                    printf(
+                                        /* translators: %d: Booking Manager event ID. */
+                                        esc_html__( 'Event #%d', 'skinny-moo-contract-builder' ),
+                                        (int) $sync_status['event_id']
+                                    );
+                                    ?>
+                                </span>
+                            <?php endif; ?>
+                            <?php if ( $contract->status === 'signed' && class_exists( 'SMBM_Event' ) ) : ?>
+                                <button
+                                    type="button"
+                                    class="button button-small smcb-sync-booking"
+                                    data-contract-id="<?php echo esc_attr( $contract->id ); ?>"
+                                    data-sync-label="<?php echo esc_attr( 'synced' === $sync_status['state'] ? __( 'Re-sync', 'skinny-moo-contract-builder' ) : __( 'Sync', 'skinny-moo-contract-builder' ) ); ?>"
+                                >
+                                    <span class="dashicons dashicons-calendar-alt"></span>
+                                    <?php echo 'synced' === $sync_status['state'] ? esc_html__( 'Re-sync', 'skinny-moo-contract-builder' ) : esc_html__( 'Sync', 'skinny-moo-contract-builder' ); ?>
+                                </button>
+                            <?php endif; ?>
                         </td>
                         <td class="column-actions">
                             <div class="smcb-row-actions">
