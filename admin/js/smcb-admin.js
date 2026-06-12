@@ -326,6 +326,48 @@
             }, 2000);
         });
 
+        // Show and copy plain-text contract details for email.
+        $('.smcb-show-email-copy').on('click', function() {
+            var $textarea = $('#smcb-email-copy-text');
+            var isVisible = $textarea.is(':visible');
+
+            $textarea.slideToggle(150, function() {
+                if (!isVisible) {
+                    $textarea.trigger('focus').select();
+                }
+            });
+            $('.smcb-copy-email-text').toggle(!isVisible);
+            $(this).html(
+                isVisible
+                    ? '<span class="dashicons dashicons-clipboard"></span> Show Copy/Paste Contract Text'
+                    : '<span class="dashicons dashicons-hidden"></span> Hide Copy/Paste Contract Text'
+            );
+            $('.smcb-copy-email-status').text('');
+        });
+
+        $('.smcb-copy-email-text').on('click', function() {
+            var $textarea = $('#smcb-email-copy-text');
+            var text = $textarea.val();
+            var $status = $('.smcb-copy-email-status');
+            var markCopied = function() {
+                $status.text('Copied.');
+                setTimeout(function() {
+                    $status.text('');
+                }, 2500);
+            };
+            var fallbackCopy = function() {
+                $textarea.trigger('focus').select();
+                document.execCommand('copy');
+                markCopied();
+            };
+
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(markCopied).catch(fallbackCopy);
+            } else {
+                fallbackCopy();
+            }
+        });
+
         // Regenerate token
         $('.smcb-regenerate-token').on('click', function() {
             var $btn = $(this);

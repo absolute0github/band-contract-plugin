@@ -984,6 +984,32 @@
     color: #fff;
 }
 
+.smcb-email-copy-section p {
+    margin-top: 0;
+}
+
+.smcb-email-copy-section .button {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-right: 8px;
+}
+
+.smcb-email-copy-text {
+    width: 100%;
+    min-height: 420px;
+    margin-top: 10px;
+    font-family: Consolas, Monaco, monospace;
+    font-size: 13px;
+    line-height: 1.5;
+    white-space: pre;
+}
+
+.smcb-copy-email-status {
+    color: var(--smcb-success);
+    font-weight: 600;
+}
+
 @media (max-width: 768px) {
     .smcb-payment-grid {
         grid-template-columns: 1fr;

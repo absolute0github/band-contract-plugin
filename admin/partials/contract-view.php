@@ -13,6 +13,79 @@ if ( ! defined( 'WPINC' ) ) {
 $statuses = smcb_get_contract_statuses();
 $production_options = smcb_get_production_options();
 $rating_options = smcb_get_audience_rating_options();
+
+$smcb_email_text_lines = array();
+$smcb_add_email_line = function( $line = '' ) use ( &$smcb_email_text_lines ) {
+    $smcb_email_text_lines[] = wp_strip_all_tags( (string) $line );
+};
+$smcb_add_email_field = function( $label, $value ) use ( $smcb_add_email_line ) {
+    if ( $value === null || $value === '' ) {
+        return;
+    }
+
+    $smcb_add_email_line( sprintf( '%s: %s', $label, $value ) );
+};
+
+$smcb_add_email_line( sprintf( 'Skinny Moo Contract: %s', $contract->contract_number ) );
+$smcb_add_email_line( str_repeat( '=', 40 ) );
+$smcb_add_email_line();
+$smcb_add_email_line( 'CLIENT INFORMATION' );
+$smcb_add_email_field( 'Company/Client', $contract->client_company_name );
+$smcb_add_email_field( 'Contact Person', $contract->contact_person_name );
+$smcb_add_email_field( 'Address', trim( $contract->street_address . ' ' . $contract->city . ', ' . $contract->state . ' ' . $contract->zip_code ) );
+$smcb_add_email_field( 'Phone', $contract->phone );
+$smcb_add_email_field( 'Email', $contract->email );
+$smcb_add_email_line();
+$smcb_add_email_line( 'PERFORMANCE DETAILS' );
+$smcb_add_email_field( 'Event Name', $contract->event_name );
+$smcb_add_email_field( 'Date', smcb_format_date( $contract->performance_date ) );
+$smcb_add_email_field( 'Load-in Time', smcb_format_time( $contract->load_in_time ) );
+$smcb_add_email_field( 'First Set Start', smcb_format_time( $contract->first_set_start_time ) );
+$smcb_add_email_field( 'Number of Sets', $contract->number_of_sets );
+$smcb_add_email_field( 'Set/Break Length', $contract->set_length . ' min / ' . $contract->break_length . ' min' );
+if ( ! empty( $contract->calculated->set_times ) ) {
+    $smcb_add_email_line( 'Set Schedule:' );
+    foreach ( $contract->calculated->set_times as $set ) {
+        $smcb_add_email_line( sprintf( '  Set %d: %s - %s', $set['set_number'], $set['start'], $set['end'] ) );
+    }
+}
+$smcb_add_email_line();
+$smcb_add_email_line( 'VENUE DETAILS' );
+$smcb_add_email_field( 'Venue Name', $contract->venue_name );
+$smcb_add_email_field( 'Venue Contact', $contract->venue_contact_person );
+$smcb_add_email_field( 'Venue Address', trim( $contract->venue_address . ' ' . $contract->venue_city . ', ' . $contract->venue_state . ' ' . $contract->venue_zip ) );
+$smcb_add_email_field( 'Venue Phone', $contract->venue_phone );
+$smcb_add_email_field( 'Venue Email', $contract->venue_email );
+$smcb_add_email_field( 'Inside/Outside', ucfirst( $contract->inside_outside ) );
+$smcb_add_email_field( 'Stage Available', strtoupper( $contract->stage_available ) );
+$smcb_add_email_field( 'Power Requirements', $contract->power_requirements );
+$smcb_add_email_field( 'Load-in Location', $contract->loadin_location );
+$smcb_add_email_field( 'Performance Location', $contract->performance_location );
+$smcb_add_email_line();
+$smcb_add_email_line( 'PRODUCTION' );
+$smcb_add_email_field( 'Sound System', $production_options[ $contract->sound_system ] ?? $contract->sound_system );
+$smcb_add_email_field( 'Lights', $production_options[ $contract->lights ] ?? $contract->lights );
+$smcb_add_email_field( 'Music Between Sets', $production_options[ $contract->music_between_sets ] ?? $contract->music_between_sets );
+$smcb_add_email_line();
+$smcb_add_email_line( 'SERVICES PROVIDED' );
+$smcb_add_email_field( 'Services Description', $contract->services_description );
+$smcb_add_email_field( 'Attire', $contract->attire );
+$smcb_add_email_field( 'Audience Rating', $rating_options[ $contract->audience_rating ] ?? strtoupper( $contract->audience_rating ) );
+$smcb_add_email_line();
+$smcb_add_email_line( 'COMPENSATION' );
+$smcb_add_email_field( 'Base Compensation', smcb_format_currency( $contract->base_compensation ) );
+if ( $contract->mileage_travel_fee > 0 ) {
+    $smcb_add_email_field( 'Travel Fee', smcb_format_currency( $contract->mileage_travel_fee ) );
+}
+if ( $contract->early_loadin_required && $contract->calculated->early_loadin_fee > 0 ) {
+    $smcb_add_email_field( sprintf( 'Early Load-in Fee (%d hours)', $contract->early_loadin_hours ), smcb_format_currency( $contract->calculated->early_loadin_fee ) );
+}
+$smcb_add_email_field( 'Total', smcb_format_currency( $contract->calculated->total_compensation ) );
+$smcb_add_email_field( sprintf( 'Deposit (%d%%)', $contract->deposit_percentage ), smcb_format_currency( $contract->calculated->deposit_amount ) );
+$smcb_add_email_field( 'Balance Due at Event', smcb_format_currency( $contract->calculated->balance_due ) );
+$smcb_add_email_line();
+$smcb_add_email_field( 'Contract Link', $contract_url );
+$smcb_email_text = implode( "\n", $smcb_email_text_lines );
 ?>
 
 <div class="wrap smcb-admin smcb-contract-view-page">
@@ -456,6 +529,24 @@ $rating_options = smcb_get_audience_rating_options();
                         <?php endif; ?>
                     </tbody>
                 </table>
+            </div>
+
+            <!-- Email Copy Text -->
+            <div class="smcb-view-section smcb-email-copy-section">
+                <h2><span class="dashicons dashicons-email-alt"></span> <?php esc_html_e( 'Email Copy Text', 'skinny-moo-contract-builder' ); ?></h2>
+                <p class="description"><?php esc_html_e( 'Use this when you want to paste the contract details into a regular email.', 'skinny-moo-contract-builder' ); ?></p>
+                <p>
+                    <button type="button" class="button button-primary smcb-show-email-copy">
+                        <span class="dashicons dashicons-clipboard"></span>
+                        <?php esc_html_e( 'Show Copy/Paste Contract Text', 'skinny-moo-contract-builder' ); ?>
+                    </button>
+                    <button type="button" class="button smcb-copy-email-text" style="display:none;">
+                        <span class="dashicons dashicons-admin-page"></span>
+                        <?php esc_html_e( 'Copy Text', 'skinny-moo-contract-builder' ); ?>
+                    </button>
+                    <span class="smcb-copy-email-status" aria-live="polite"></span>
+                </p>
+                <textarea id="smcb-email-copy-text" class="smcb-email-copy-text" readonly rows="24" style="display:none;"><?php echo esc_textarea( $smcb_email_text ); ?></textarea>
             </div>
         </div>
 
