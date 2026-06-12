@@ -12,6 +12,7 @@ if ( ! defined( 'WPINC' ) ) {
 
 $statuses = smcb_get_contract_statuses();
 $production_options = smcb_get_production_options();
+$rating_options = smcb_get_audience_rating_options();
 ?>
 
 <div class="wrap smcb-admin smcb-contract-view-page">
@@ -205,6 +206,29 @@ $production_options = smcb_get_production_options();
                     <div class="smcb-view-field">
                         <label><?php esc_html_e( 'Music Between Sets', 'skinny-moo-contract-builder' ); ?></label>
                         <span><?php echo esc_html( $production_options[ $contract->music_between_sets ] ?? $contract->music_between_sets ); ?></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Services Provided -->
+            <div class="smcb-view-section">
+                <h2><span class="dashicons dashicons-admin-tools"></span> <?php esc_html_e( 'Services Provided', 'skinny-moo-contract-builder' ); ?></h2>
+                <div class="smcb-view-grid">
+                    <?php if ( ! empty( $contract->services_description ) ) : ?>
+                        <div class="smcb-view-field smcb-view-field-full">
+                            <label><?php esc_html_e( 'Services Description', 'skinny-moo-contract-builder' ); ?></label>
+                            <span><?php echo esc_html( $contract->services_description ); ?></span>
+                        </div>
+                    <?php endif; ?>
+                    <?php if ( ! empty( $contract->attire ) ) : ?>
+                        <div class="smcb-view-field">
+                            <label><?php esc_html_e( 'Attire', 'skinny-moo-contract-builder' ); ?></label>
+                            <span><?php echo esc_html( $contract->attire ); ?></span>
+                        </div>
+                    <?php endif; ?>
+                    <div class="smcb-view-field">
+                        <label><?php esc_html_e( 'Audience Rating', 'skinny-moo-contract-builder' ); ?></label>
+                        <span><?php echo esc_html( $rating_options[ $contract->audience_rating ] ?? strtoupper( $contract->audience_rating ) ); ?></span>
                     </div>
                 </div>
             </div>
